@@ -48,36 +48,58 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <inttypes.h>
 
 typedef struct {
-    _Bool* Previous;
-    _Bool* Next;
-    _Bool Stored;
-} Segment;
-
-typedef struct {
-    Segment* Pattern;
-    uint8_t Appearances;
+    _Bool* Pattern;
+    unsigned char Appearances;
 } Occurrence;
 
+typedef struct {
+    char Expectation;
+    _Bool Return;
+} Product;
+
+Product ConvertParent(const char Subject, const char ConnectLetter, const char ConnectNumber) {
+    Product End = { 0 };
+
+    if (Subject == ConnectLetter) End = (Product) {.Expectation = ConnectNumber, .Return = 1};
+    if (Subject == ConnectNumber) End = (Product) {.Expectation = ConnectNumber, .Return = 1};
+
+    return End;
+}
+
 _Bool Convert(const char Subject) {
-    if (Subject == 'X') {
-        return 1;
-    }
-    if (Subject == 'O') {
-        return 0;
-    }
+    Product End = { 0 };
+
+    End = ConvertParent(Subject, '0', 0);
+    if (End.Return == 1) return End.Expectation;
+
+    End = ConvertParent(Subject, 'X', 1);
+    if (End.Return == 1) return End.Expectation;
 
     return 0;
 }
 
+_Bool* ReadPattern(const _Bool* Line, const unsigned char PointInLine, const unsigned char LengthOfPattern) {
+    _Bool* Pattern = calloc(LengthOfPattern, sizeof(_Bool));
+
+    unsigned char PatternDigit = 0;
+
+    while (PatternDigit < LengthOfPattern) {
+        Pattern[PatternDigit] = Line[PointInLine];
+
+        PatternDigit++;
+    }
+
+    return Pattern;
+}
+
 int main() {
-    Segment* Line = calloc(1, sizeof(Segment));
+    _Bool* Line = calloc(1, sizeof(_Bool));
 
-    Line[0].Stored = Convert((char) getchar());
+    Line[0] = Convert((char) getchar());
 
-    printf("%d", Line[0].Stored);
+    printf("%d", Line[0]);
 
     free(Line);
 
