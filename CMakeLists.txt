@@ -2,5 +2,7 @@ cmake_minimum_required(VERSION 4.2)
 project(witspg C)
 
 set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
 
-add_executable(witspg main.c)
+add_subdirectory(src)
