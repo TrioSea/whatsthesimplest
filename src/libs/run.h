@@ -1,15 +1,8 @@
 #ifndef WITSPG_MAIN_H
 #define WITSPG_MAIN_H
 
-#include <stdio.h>
-#include <stdlib.h>
-
+#include "strings.h"
 #include "conversions.h"
-
-typedef struct {
-    size_t Count;
-    size_t Limit;
-} SizeTracker;
 
 typedef struct {
     _Bool* Line;
@@ -33,9 +26,10 @@ typedef struct {
 
 Game Pose();
 
-_Bool* ReadPattern(const _Bool* Line, unsigned char PointInLine, unsigned char LengthOfPattern);
-_Bool NewPattern(Game Game, const _Bool* Pattern);
+_Bool* ReadPattern(const _Bool* Line, size_t PointInLine, unsigned char SequenceLength);
+void AllocateSpace(Game* Game);
 void InsertOccurrence(Game* Game, _Bool* Pattern);
+void ModifyList(Position Position, Game* Game, unsigned char SequenceLength, size_t EndAt);
 _Bool MetOccurrence(Game Game, size_t AppearanceRequirement);
 
-#endif //WITSPG_MAIN_H
+#endif // WITSPG_MAIN_H

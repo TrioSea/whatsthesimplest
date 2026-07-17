@@ -1,3 +1,4 @@
+#include "strings.h"
 #include "conversions.h"
 
 Product ConvertParent(const char Subject, const char ConnectLetter, const char ConnectNumber) {
@@ -9,17 +10,36 @@ Product ConvertParent(const char Subject, const char ConnectLetter, const char C
     return End;
 }
 
-_Bool Convert(const char Subject) {
-    Product End;
-    Bind Connect;
+_Bool Convert(const char Subject, const int Bindings, const Bind* Bounded) {
+    int BindIndex = 0;
 
-    Connect = (Bind) {.Character = '0', .Numeral = 0};
-    End = ConvertParent(Subject, Connect.Character, Connect.Numeral);
-    if (End.Return == 1) return End.Expectation;
+    while (BindIndex < Bindings) {
+        const Bind Connect = Bounded[BindIndex];
+        const Product End = ConvertParent(Subject, Connect.Character, Connect.Numeral);
+        if (End.Return == 1) return End.Expectation;
 
-    Connect = (Bind) {.Character = 'X', .Numeral = 0};
-    End = ConvertParent(Subject, Connect.Character, Connect.Numeral);
-    if (End.Return == 1) return End.Expectation;
+        BindIndex++;
+    }
 
     return 0;
+}
+
+char TwoWayConversion(const char Subject, const char CharacterBind1, const char NumeralBind1, const char CharacterBind2, const char NumeralBind2) {
+    const int Bindings = 2;
+    Bind* Bounded = calloc(Bindings, sizeof(Bind));
+
+    Bounded[0] = (Bind) {
+        .Character = 'O',
+        .Numeral = 0
+    };
+
+    Bounded[1] = (Bind) {
+        .Character = 'X',
+        .Numeral = 1
+    };
+
+    const char Given = Convert(Subject, Bindings, Bounded);
+    free(Bounded);
+
+    return Given;
 }

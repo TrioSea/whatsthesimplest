@@ -1,0 +1,49 @@
+AS OF BEING COPIED FROM src/run.c THESE WILL NOT BE UPDATED
+
+/*
+ *
+ *Take in or make a Line (if directly took without prior, split up the line, start with line of 1, 2, 3, ... N)
+ *
+ *Have a function that takes in point in line and length of a sequence
+ *  In: Line
+ *      6
+ *      3
+ *  Out: XXX
+ *
+ *Have a function that makes an occurrence list
+ *Have a function that adds one to an occurrence in the list - notes: needed to split
+ *  In: occurrence List
+ *      OOX
+ *
+ *Have a function that returns the line length - notes: doesnt need, one-liner
+ *  In: Line
+ *  Out: 19
+ *
+ *Have a function that modifies an occurrence list based on a sequence length - notes: i am very confused about this, probably the 5 is meant to be a 3
+ *  In: Line
+ *      5
+ *      occurrence List
+ *  Out: occurrences ex.
+ *      OXO: 2
+ *      XOO: 1
+ *      ...
+ *
+ *Have a function that reads an occurrence list and returns a boolean to whether any occurrence is present at least any set time multiplier
+ *  In: occurrence List
+ *      4
+ *  Out: false
+ *
+ *Have a function that receives input from the player on request
+ *Have a function that outputs to the player whether the game is won for who and why
+ *
+ *Rules: Starting player needs 2x 5 length identical sequences
+ *Other player needs 4x 3 length identical sequences
+ *Whoever reaches there faster wins
+ *
+ *Later
+ *Time Control
+ *Game Host
+ *Rated Matches
+ *Friends List
+ *
+ */

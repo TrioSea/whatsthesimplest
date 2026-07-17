@@ -12,6 +12,7 @@ typedef struct {
 } Bind;
 
 Product ConvertParent(char Subject, char ConnectLetter, char ConnectNumber);
-_Bool Convert(char Subject);
+_Bool Convert(char Subject, int Bindings, const Bind* Bounded);
+char TwoWayConversion(char Subject, char CharacterBind1, char NumeralBind1, char CharacterBind2, char NumeralBind2);
 
-#endif //WITSPG_CONVERSIONS_H
+#endif // WITSPG_CONVERSIONS_H
