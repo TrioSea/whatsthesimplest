@@ -9,15 +9,15 @@
  *  Out: XXX
  *
  *Have a function that makes an occurrence list
- *Have a function that adds one to an occurrence in the list
+ *Have a function that adds one to an occurrence in the list - notes: needed to split
  *  In: occurrence List
  *      OOX
  *
- *Have a function that returns the line length
+ *Have a function that returns the line length - notes: doesnt need, one-liner
  *  In: Line
  *  Out: 19
  *
- *Have a function that modifies an occurrence list based on a sequence length
+ *Have a function that modifies an occurrence list based on a sequence length - notes: i am very confused about this, probably the 5 is meant to be a 3
  *  In: Line
  *      5
  *      occurrence List
@@ -48,6 +48,15 @@
 
 #include "libs/run.h"
 
+Game Pose() {
+    return (Game) {
+        .List = (Occurrence*) calloc(0, sizeof(Occurrence)),
+        .Path = {
+            .Count = 0,
+            .Limit = 1
+        }
+    };
+}
 
 _Bool* ReadPattern(const _Bool* Line, const unsigned char PointInLine, const unsigned char LengthOfPattern) {
     _Bool* Pattern = calloc(LengthOfPattern, sizeof(_Bool));
@@ -63,30 +72,23 @@ _Bool* ReadPattern(const _Bool* Line, const unsigned char PointInLine, const uns
     return Pattern;
 }
 
-Game Pose() {
-    return (Game) {
-        .List = (Occurrence*) calloc(0, sizeof(Occurrence)),
-        .Path = {
-            .Count = 0,
-            .Limit = 1
+_Bool NewPattern(const Game Game, const _Bool* Pattern) {
+    int PatternIndex = 0;
+
+    while (PatternIndex < Game.Path.Count) {
+        if (Game.List[PatternIndex].Pattern != Pattern) {
+            PatternIndex++;
+        } else {
+            Game.List[PatternIndex].Appearances++;
+            return 1;
         }
-    };
+    }
+
+    return 0;
 }
 
 void InsertOccurrence(Game* Game, _Bool* Pattern) {
-    int index = 0;
-    _Bool found = 0;
-
-    while (index < Game->Path.Count) {
-        if (Game->List[index].Pattern == Pattern) {
-            Game->List[index].Appearances++;
-            found = 1;
-        }
-
-        index++;
-    }
-
-    if (found == 1) return;
+    if (NewPattern(*Game, Pattern) == 1) return;
 
     if (Game->Path.Count == Game->Path.Limit) {
         const size_t NewLimit = Game->Path.Limit << 1;
@@ -108,17 +110,18 @@ void InsertOccurrence(Game* Game, _Bool* Pattern) {
     Game->Path.Count++;
 }
 
-size_t LengthOfLine(const Position Line) {
-    return Line.Path.Count;
+
+
+_Bool MetOccurrence(const Game Game, const size_t AppearanceRequirement) {
+    int OccurrenceIndex = 0;
+
+    while (OccurrenceIndex < Game.Path.Count) {
+        if (Game.List[OccurrenceIndex].Appearances < AppearanceRequirement) {
+            OccurrenceIndex++;
+        } else {
+            return 1;
+        }
+    }
+
+    return 0;
 }
-
-
-
-/*
-Occurrence* List;
-_Bool* LastOccurrence;
-_Bool** Line;
-size_t Count;
-size_t Limit;
-*/
-
