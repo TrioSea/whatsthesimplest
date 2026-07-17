@@ -4,7 +4,7 @@ https://www.youtube.com/watch?v=A-lh1-bTzTw&pp=ygUid2hhdCBpcyB0aGUgc2ltcGxlc3QgZ
 This project is licensed because I wrote it.
 As far as I am aware, nothing concerning me has been issued to prevent the writing of this code.
 This project is based on the game I at least have been made known to by @webgoatguy on YouTube™.
-I have not heard it be name anything.
+I have not heard a name for the game.
 
 To play, two players take turns giving one single bit input to eventually reach an outcome that can result in a win to either player or draw.
 You have two options to pick between per turn, an X or an O. Once you make your decision, the input is tiled further on a line.
