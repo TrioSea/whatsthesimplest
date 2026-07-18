@@ -24,10 +24,15 @@ typedef struct {
     SizeTracker Path;
 } Game;
 
-Game Play();
+Position Construct();
+Game ConstructPlay();
+void Dump(const Position* Source, _Bool** Destination);
+void DumpPlay(const Game* Source, Occurrence** Destination);
+void AllocateSpace(SizeTracker Path, Position* Game);
+void AllocatePlaySpace(SizeTracker Path, Game* Game);
 
 _Bool* ReadPattern(const _Bool* Line, size_t PointInLine, unsigned char SequenceLength);
-void AllocateSpace(Game* Game);
+
 void InsertOccurrence(Game* Game, _Bool* Pattern);
 void ModifyList(Position Position, Game* Game, unsigned char SequenceLength, size_t EndAt);
 _Bool MetOccurrence(Game Game, size_t AppearanceRequirement);

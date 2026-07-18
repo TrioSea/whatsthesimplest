@@ -1,22 +1,9 @@
 #include "libs/run.h"
 
 int main() {
-    _Bool* Line = calloc(0, sizeof(_Bool));
-    _Bool** Reference = &Line;
-    Position Player1 = {
-        .Line = *Reference,
-        .Path = {
-            .Count = 0,
-            .Limit = 1
-        }
-    };
-    Position Player2 = {
-        .Line = *Reference,
-        .Path = {
-            .Count = 0,
-            .Limit = 1
-        }
-    };
+    Position Pose = ConstructPose();
+    Game Player1 = ConstructPlay();
+    Game Player2 = ConstructPlay();
 
     int Times = 0;
 
@@ -27,7 +14,7 @@ int main() {
         printf("Player %c; ", TwoWayConversion(StartingPlayer, '1', 1, '2', 2));
 
         int ThroughLine = 0;
-        while (ThroughLine < *Reference->)
+        while (ThroughLine < )
 
         if (StartingPlayer == 1) NewPlayer = 0;
         if (StartingPlayer == 0) NewPlayer = 1;
@@ -36,11 +23,11 @@ int main() {
         Times++;
     }
 
-    Line[0] = TwoWayConversion((char) getchar(), 'O', 0, 'X', 1);
+    Pose.Line[0] = TwoWayConversion((char) getchar(), 'O', 0, 'X', 1);
 
-    printf("%d", Line[0]);
+    printf("%d", Pose.Line[0]);
 
-    free(Line);
+    free(Pose.Line);
 
     return 0;
 }

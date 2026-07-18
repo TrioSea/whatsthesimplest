@@ -1,6 +1,16 @@
 #include "libs/run.h"
 
-Game Play() {
+Position Construct() {
+    return (Position) {
+        .Line = (_Bool*) calloc(0, sizeof(_Bool)),
+        .Path = {
+            .Count = 0,
+            .Limit = 1
+        }
+    };
+}
+
+Game ConstructPlay() {
     return (Game) {
         .List = (Occurrence*) calloc(0, sizeof(Occurrence)),
         .Path = {
@@ -10,34 +20,53 @@ Game Play() {
     };
 }
 
-_Bool* ReadPattern(const _Bool* Line, const size_t PointInLine, const unsigned char LengthOfPattern) {
-    _Bool* Pattern = calloc(LengthOfPattern, sizeof(_Bool));
+void Dump(const Position* Source, _Bool** Destination) {
 
-    unsigned char PatternDigit = 0;
 
-    while (PatternDigit < LengthOfPattern) {
-        Pattern[PatternDigit] = Line[PointInLine];
+    free(Source->Line);
+}
 
-        PatternDigit++;
+void DumpPlay(const Game* Source, Occurrence** Destination) {
+
+
+    free(Source->List);
+}
+
+void AllocateSpace(SizeTracker Path, Position* Position) {
+    if (Path.Count != Path.Limit) return; // Check if we need to actual run the function
+
+    const size_t NewLimit = Path.Limit << 1; // Get the new capacity
+
+    _Bool* NewLine = calloc(NewLimit, sizeof(_Bool)); // Allocate a new list with greater capacity
+    Dump(Position, &NewLine); // Dump the old list contents in
+    Position->Line = NewLine; // Replace the list
+
+    Path.Limit = NewLimit; // Correct the limit
+}
+
+void AllocatePlaySpace(SizeTracker Path, Game* Game) {
+    if (Path.Count != Path.Limit) return; // Check if we need to actual run the function
+
+    const size_t NewLimit = Path.Limit << 1; // Get the new capacity
+
+    Occurrence* NewList = calloc(NewLimit, sizeof(Occurrence)); // Allocate a new list with greater capacity
+    DumpPlay(Game, &NewList); // Dump the old list contents in
+    Game->List = NewList; // Replace the list
+
+    Path.Limit = NewLimit; // Correct the limit
+}
+
+_Bool* ReadPattern(const _Bool* Line, const size_t PointInLine, const unsigned char SequenceLength) {
+    _Bool* Pattern = calloc(SequenceLength, sizeof(_Bool)); // Clear up a pattern
+
+    unsigned char SequenceIndex = 0; // Incremental Looping Index
+
+    while (SequenceIndex < SequenceLength) {
+        Pattern[SequenceIndex] = Line[PointInLine + SequenceIndex]; // Translate pattern from the line directly
+        SequenceIndex++;
     }
 
     return Pattern;
-}
-
-void AllocateSpace(Game* Game) {
-    if (Game->Path.Count != Game->Path.Limit) return;
-
-    // Get the new capacity
-    const size_t NewLimit = Game->Path.Limit << 1;
-
-    // Replace the old allocate with a new one
-    Occurrence* NewList = calloc(NewLimit, sizeof(Occurrence)); // New allocation
-    *NewList = *Game->List;
-    free(Game->List);
-
-    // Correct the information in Game
-    Game->List = NewList;
-    Game->Path.Limit = NewLimit;
 }
 
 void InsertOccurrence(Game* Game, _Bool* Pattern) {
@@ -56,7 +85,7 @@ void InsertOccurrence(Game* Game, _Bool* Pattern) {
     }
 
     // Make sure we have space to add the pattern
-    AllocateSpace(Game);
+    AllocatePlaySpace(Game->Path, Game);
 
     // Add the pattern
     Game->List[Game->Path.Count] = (Occurrence) {
@@ -70,6 +99,7 @@ void InsertOccurrence(Game* Game, _Bool* Pattern) {
 void ModifyList(const Position Position, Game* Game, const unsigned char SequenceLength, const size_t EndAt) {
     // If the inputs are out of bounds in any way, we will throw an error
     if (EndAt + 1 < Position.Path.Count || EndAt + 1 < SequenceLength) {
+        // NOT GOING TO WORK ON ERROR HANDLING AND STRING LIBRARY FOR A LITTLE BIT
         const String ErrorMessage = {
             .Bit = "Inputs are OUT OF BOUNDS"
         };
@@ -77,22 +107,21 @@ void ModifyList(const Position Position, Game* Game, const unsigned char Sequenc
         ErrorHandler(ErrorMessage);
     }
 
-    int Back = (unsigned char) EndAt - (SequenceLength - 1);
+    // Set the looping value as a back to front to decrement
+    int Back = (unsigned char) EndAt + 1 - (SequenceLength - 1);
 
     while (Back > 0) {
-        int SequenceIndex = 0;
-        _Bool* Pattern = calloc(SequenceLength, sizeof(_Bool));
+        // Use the function to simplify the obtainance of the pattern
+        _Bool* Pattern = ReadPattern(Position.Line, Back, SequenceLength);
 
-        while (SequenceIndex < SequenceLength) {
-            const int Index = Back - (SequenceLength - 1) + SequenceIndex;
-            Pattern[SequenceIndex] = Position.Line[Index];
-            SequenceIndex++;
-        }
-
+        // Use the pattern to only insert it
         InsertOccurrence(Game, Pattern);
+        free(Pattern);
+
         Back--;
     }
 }
+
 
 _Bool MetOccurrence(const Game Game, const size_t AppearanceRequirement) {
     int OccurrenceIndex = 0;
