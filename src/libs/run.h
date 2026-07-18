@@ -24,7 +24,7 @@ typedef struct {
     SizeTracker Path;
 } Game;
 
-Game Pose();
+Game Play();
 
 _Bool* ReadPattern(const _Bool* Line, size_t PointInLine, unsigned char SequenceLength);
 void AllocateSpace(Game* Game);

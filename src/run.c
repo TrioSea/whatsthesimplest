@@ -1,6 +1,6 @@
 #include "libs/run.h"
 
-Game Pose() {
+Game Play() {
     return (Game) {
         .List = (Occurrence*) calloc(0, sizeof(Occurrence)),
         .Path = {

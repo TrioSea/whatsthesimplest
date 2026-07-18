@@ -24,7 +24,10 @@ int main() {
     _Bool StartingPlayer = 1;
 
     while (Times < 10) {
-        printf("Player %c; ");
+        printf("Player %c; ", TwoWayConversion(StartingPlayer, '1', 1, '2', 2));
+
+        int ThroughLine = 0;
+        while (ThroughLine < *Reference->)
 
         if (StartingPlayer == 1) NewPlayer = 0;
         if (StartingPlayer == 0) NewPlayer = 1;
@@ -32,8 +35,6 @@ int main() {
 
         Times++;
     }
-    printf("Player 1; No Line: ");
-    printf("Player 2; O: ");
 
     Line[0] = TwoWayConversion((char) getchar(), 'O', 0, 'X', 1);
 
