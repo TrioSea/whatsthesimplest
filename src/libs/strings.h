@@ -14,6 +14,7 @@ typedef struct {
     size_t Limit;
 } SizeTracker;
 
+void Pave(SizeTracker* Path, void** Item, size_t ItemRoom);
 void ErrorHandler(String String);
 
 #endif // WITSPG_STRINGS_H

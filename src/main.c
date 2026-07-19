@@ -1,10 +1,6 @@
 #include "libs/run.h"
 
 int main() {
-    Position Pose = ConstructPose();
-    Game Player1 = ConstructPlay();
-    Game Player2 = ConstructPlay();
-
     int Times = 0;
 
     _Bool NewPlayer = 1;
@@ -26,8 +22,6 @@ int main() {
     Pose.Line[0] = TwoWayConversion((char) getchar(), 'O', 0, 'X', 1);
 
     printf("%d", Pose.Line[0]);
-
-    free(Pose.Line);
 
     return 0;
 }

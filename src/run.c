@@ -1,59 +1,14 @@
 #include "libs/run.h"
 
-Position Construct() {
-    return (Position) {
-        .Line = (_Bool*) calloc(0, sizeof(_Bool)),
-        .Path = {
-            .Count = 0,
-            .Limit = 1
-        }
-    };
-}
+// PLEASE HANDLE FOR INVALID MEMORY ACCESSING (NULL MEMORY WHEN TRYING TO GRAB) ex. if (mem == NULL) return;
 
-Game ConstructPlay() {
-    return (Game) {
-        .List = (Occurrence*) calloc(0, sizeof(Occurrence)),
-        .Path = {
-            .Count = 0,
-            .Limit = 1
-        }
-    };
-}
+void AllocateGenericSpace(SizeTracker* Path, void** Item, const size_t element_size) {
+    const size_t NewItemRule = element_size * (Path->Limit != 0 ? 0 : 4);
+    const size_t old_byte_size = element_size * Path->Limit;
+    const size_t new_byte_size = (old_byte_size << 1) + NewItemRule;
 
-void Dump(const Position* Source, _Bool** Destination) {
-
-
-    free(Source->Line);
-}
-
-void DumpPlay(const Game* Source, Occurrence** Destination) {
-
-
-    free(Source->List);
-}
-
-void AllocateSpace(SizeTracker Path, Position* Position) {
-    if (Path.Count != Path.Limit) return; // Check if we need to actual run the function
-
-    const size_t NewLimit = Path.Limit << 1; // Get the new capacity
-
-    _Bool* NewLine = calloc(NewLimit, sizeof(_Bool)); // Allocate a new list with greater capacity
-    Dump(Position, &NewLine); // Dump the old list contents in
-    Position->Line = NewLine; // Replace the list
-
-    Path.Limit = NewLimit; // Correct the limit
-}
-
-void AllocatePlaySpace(SizeTracker Path, Game* Game) {
-    if (Path.Count != Path.Limit) return; // Check if we need to actual run the function
-
-    const size_t NewLimit = Path.Limit << 1; // Get the new capacity
-
-    Occurrence* NewList = calloc(NewLimit, sizeof(Occurrence)); // Allocate a new list with greater capacity
-    DumpPlay(Game, &NewList); // Dump the old list contents in
-    Game->List = NewList; // Replace the list
-
-    Path.Limit = NewLimit; // Correct the limit
+    void* NewAllocation = realloc(*Item, new_byte_size);
+    memset((char*)NewAllocation + old_byte_size, 0, old_byte_size + NewItemRule);
 }
 
 _Bool* ReadPattern(const _Bool* Line, const size_t PointInLine, const unsigned char SequenceLength) {
@@ -85,7 +40,7 @@ void InsertOccurrence(Game* Game, _Bool* Pattern) {
     }
 
     // Make sure we have space to add the pattern
-    AllocatePlaySpace(Game->Path, Game);
+    Pave(Game->Path, Game);
 
     // Add the pattern
     Game->List[Game->Path.Count] = (Occurrence) {
@@ -97,15 +52,7 @@ void InsertOccurrence(Game* Game, _Bool* Pattern) {
 }
 
 void ModifyList(const Position Position, Game* Game, const unsigned char SequenceLength, const size_t EndAt) {
-    // If the inputs are out of bounds in any way, we will throw an error
-    if (EndAt + 1 < Position.Path.Count || EndAt + 1 < SequenceLength) {
-        // NOT GOING TO WORK ON ERROR HANDLING AND STRING LIBRARY FOR A LITTLE BIT
-        const String ErrorMessage = {
-            .Bit = "Inputs are OUT OF BOUNDS"
-        };
-
-        ErrorHandler(ErrorMessage);
-    }
+    if (EndAt + 1 < Position.Path.Count || EndAt + 1 < SequenceLength) return;
 
     // Set the looping value as a back to front to decrement
     int Back = (unsigned char) EndAt + 1 - (SequenceLength - 1);
