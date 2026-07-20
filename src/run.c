@@ -1,15 +1,7 @@
 #include "libs/run.h"
 
 // PLEASE HANDLE FOR INVALID MEMORY ACCESSING (NULL MEMORY WHEN TRYING TO GRAB) ex. if (mem == NULL) return;
-
-void AllocateGenericSpace(SizeTracker* Path, void** Item, const size_t element_size) {
-    const size_t NewItemRule = element_size * (Path->Limit != 0 ? 0 : 4);
-    const size_t old_byte_size = element_size * Path->Limit;
-    const size_t new_byte_size = (old_byte_size << 1) + NewItemRule;
-
-    void* NewAllocation = realloc(*Item, new_byte_size);
-    memset((char*)NewAllocation + old_byte_size, 0, old_byte_size + NewItemRule);
-}
+// PLEASE WORK ON THE STRING AND MEMORY MANAGEMENT LIBRARY TO ALLOW FOR EASIER ERROR MESSAGES
 
 _Bool* ReadPattern(const _Bool* Line, const size_t PointInLine, const unsigned char SequenceLength) {
     _Bool* Pattern = calloc(SequenceLength, sizeof(_Bool)); // Clear up a pattern
