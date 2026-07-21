@@ -1,12 +1,11 @@
 #include "libs/run.h"
 
-// PLEASE HANDLE FOR INVALID MEMORY ACCESSING (NULL MEMORY WHEN TRYING TO GRAB) ex. if (mem == NULL) return;
-// PLEASE WORK ON THE STRING AND MEMORY MANAGEMENT LIBRARY TO ALLOW FOR EASIER ERROR MESSAGES
-
-_Bool* ReadPattern(const _Bool* Line, const size_t PointInLine, const unsigned char SequenceLength) {
+_Bool* ReadPattern(const _Bool* Line, const size_t PointInLine, const int SequenceLength) {
     _Bool* Pattern = calloc(SequenceLength, sizeof(_Bool)); // Clear up a pattern
+    const FallBack Error = CheckNewlyAllocated(Pattern);
+    if (Error.ReturnCode == 1) return Pattern;
 
-    unsigned char SequenceIndex = 0; // Incremental Looping Index
+    int SequenceIndex = 0; // Incremental Looping Index
 
     while (SequenceIndex < SequenceLength) {
         Pattern[SequenceIndex] = Line[PointInLine + SequenceIndex]; // Translate pattern from the line directly
@@ -32,7 +31,7 @@ void InsertOccurrence(Game* Game, _Bool* Pattern) {
     }
 
     // Make sure we have space to add the pattern
-    Pave(Game->Path, Game);
+    Pave(&Game->Path, (void**)&Game->List, sizeof(Occurrence));
 
     // Add the pattern
     Game->List[Game->Path.Count] = (Occurrence) {
@@ -43,11 +42,11 @@ void InsertOccurrence(Game* Game, _Bool* Pattern) {
     Game->Path.Count++;
 }
 
-void ModifyList(const Position Position, Game* Game, const unsigned char SequenceLength, const size_t EndAt) {
+void ModifyList(const Position Position, Game* Game, const int SequenceLength, const size_t EndAt) {
     if (EndAt + 1 < Position.Path.Count || EndAt + 1 < SequenceLength) return;
 
     // Set the looping value as a back to front to decrement
-    int Back = (unsigned char) EndAt + 1 - (SequenceLength - 1);
+    int Back = (int) EndAt + 1 - (SequenceLength - 1);
 
     while (Back > 0) {
         // Use the function to simplify the obtainance of the pattern
@@ -56,6 +55,7 @@ void ModifyList(const Position Position, Game* Game, const unsigned char Sequenc
         // Use the pattern to only insert it
         InsertOccurrence(Game, Pattern);
         free(Pattern);
+        Pattern = NULL;
 
         Back--;
     }
@@ -67,11 +67,11 @@ _Bool MetOccurrence(const Game Game, const size_t AppearanceRequirement) {
 
     while (OccurrenceIndex < Game.Path.Count) {
         if (Game.List[OccurrenceIndex].Appearances < AppearanceRequirement) {
-            OccurrenceIndex++;
+            OccurrenceIndex++; // Running through all occurrences until one meets requirement
         } else {
             return 1;
         }
     }
 
-    return 0;
+    return 0; // Return the results
 }

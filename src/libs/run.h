@@ -15,8 +15,8 @@ typedef struct {
 } Occurrence;
 
 typedef struct {
-    unsigned char Repeats;
-    unsigned char Length;
+    int Repeats;
+    int Length;
 } Settings;
 
 typedef struct {
@@ -24,9 +24,9 @@ typedef struct {
     SizeTracker Path;
 } Game;
 
-_Bool* ReadPattern(const _Bool* Line, size_t PointInLine, unsigned char SequenceLength);
+_Bool* ReadPattern(const _Bool* Line, size_t PointInLine, int SequenceLength);
 void InsertOccurrence(Game* Game, _Bool* Pattern);
-void ModifyList(Position Position, Game* Game, unsigned char SequenceLength, size_t EndAt);
+void ModifyList(Position Position, Game* Game, int SequenceLength, size_t EndAt);
 _Bool MetOccurrence(Game Game, size_t AppearanceRequirement);
 
 #endif // WITSPG_MAIN_H
