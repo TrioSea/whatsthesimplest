@@ -1,6 +1,17 @@
 #include "libs/run.h"
 
 int main() {
+    const char Input = (char) getchar();
+
+    if (Input == 'X') {
+        printf("1");
+    } else if (Input == 'O') {
+        printf("0");
+    } else {
+        printf("NIL");
+    }
+
+    /*
     Position Home;
     Game Player1;
     Game Player2;
@@ -39,6 +50,7 @@ int main() {
     free(Home.Line);
     free(Player1.List);
     free(Player2.List);
+    */
 
     return 0;
 }
