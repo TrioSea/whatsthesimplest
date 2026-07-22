@@ -5,12 +5,12 @@ Product ConvertParent(const char Subject, const char ConnectLetter, const char C
     Product End = { 0 };
 
     if (Subject == ConnectLetter) End = (Product) {.Expectation = ConnectNumber, .Return = 1};
-    if (Subject == ConnectNumber) End = (Product) {.Expectation = ConnectNumber, .Return = 1};
+    if (Subject == ConnectNumber) End = (Product) {.Expectation = ConnectLetter, .Return = 1};
 
     return End;
 }
 
-_Bool Convert(const char Subject, const int Bindings, const Bind* Bounded) {
+char Convert(const char Subject, const int Bindings, const Bind* Bounded) {
     int BindIndex = 0;
 
     while (BindIndex < Bindings) {
@@ -29,13 +29,13 @@ char TwoWayConversion(const char Subject, const char CharacterBind1, const char 
     Bind* Bounded = calloc(Bindings, sizeof(Bind));
 
     Bounded[0] = (Bind) {
-        .Character = 'O',
-        .Numeral = 0
+        .Character = CharacterBind1,
+        .Numeral = NumeralBind1
     };
 
     Bounded[1] = (Bind) {
-        .Character = 'X',
-        .Numeral = 1
+        .Character = CharacterBind2,
+        .Numeral = NumeralBind2
     };
 
     const char Given = Convert(Subject, Bindings, Bounded);
