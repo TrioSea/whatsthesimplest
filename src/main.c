@@ -1,31 +1,16 @@
 #include "libs/run.h"
 
 int main() {
-    /*
     Position Home;
     Game Player1;
     Game Player2;
 
     FillSpace(Home, Player1, Player2);
-    */
 
     int Times = 0;
 
     _Bool NewPlayer = 1;
     _Bool StartingPlayer = 1;
-
-    /*
-     * //forget this now
-    const char Input = (char) getchar();
-
-    if (Input == 'X') {
-        printf("1");
-    } else if (Input == 'O') {
-        printf("0");
-    } else {
-        printf("NIL");
-    }
-    */
 
     while (Times < 10) {
         const char PlayerNumeration = TwoWayConversion(StartingPlayer, '1', 1, '2', 0);
@@ -56,11 +41,9 @@ int main() {
         Times++;
     }
 
-    /*
     free(Home.Line);
     free(Player1.List);
     free(Player2.List);
-    */
 
     return 0;
 }
