@@ -5,11 +5,6 @@
 #include "conversions.h"
 
 typedef struct {
-    _Bool* Line;
-    SizeTracker Path;
-} Position;
-
-typedef struct {
     _Bool* Pattern;
     size_t Appearances;
 } Occurrence;
@@ -20,6 +15,11 @@ typedef struct {
 } Settings;
 
 typedef struct {
+    _Bool* Line;
+    SizeTracker Path;
+} Position;
+
+typedef struct {
     Occurrence* List;
     SizeTracker Path;
 } Game;
@@ -28,5 +28,7 @@ _Bool* ReadPattern(const _Bool* Line, size_t PointInLine, int SequenceLength);
 void InsertOccurrence(Game* Game, _Bool* Pattern);
 void ModifyList(Position Position, Game* Game, int SequenceLength, size_t EndAt);
 _Bool MetOccurrence(Game Game, size_t AppearanceRequirement);
+void AddSpot(Position *Position, _Bool ADD);
+void FillSpace(Position Home, Game Player1, Game Player2);
 
 #endif // WITSPG_MAIN_H

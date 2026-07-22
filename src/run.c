@@ -61,7 +61,6 @@ void ModifyList(const Position Position, Game* Game, const int SequenceLength, c
     }
 }
 
-
 _Bool MetOccurrence(const Game Game, const size_t AppearanceRequirement) {
     int OccurrenceIndex = 0;
 
@@ -74,4 +73,27 @@ _Bool MetOccurrence(const Game Game, const size_t AppearanceRequirement) {
     }
 
     return 0; // Return the results
+}
+
+void AddSpot(Position *Position, const _Bool ADD) {
+    Pave(&Position->Path, (void**)&Position->Line, sizeof(_Bool));
+
+    Position->Line[Position->Path.Count] = ADD;
+    Position->Path.Count++;
+}
+
+void FillSpace(Position Home, Game Player1, Game Player2) {
+    FallBack Error;
+
+    Home.Line = calloc(0, sizeof(_Bool));
+    Error = CheckNewlyAllocated(Home.Line);
+    if (Error.ReturnCode == 1) return;
+
+    Player1.List = calloc(0, sizeof(Occurrence));
+    Error = CheckNewlyAllocated(Player1.List);
+    if (Error.ReturnCode == 1) return;
+
+    Player2.List = calloc(0, sizeof(Occurrence));
+    Error = CheckNewlyAllocated(Player2.List);
+    if (Error.ReturnCode == 1) return;
 }
