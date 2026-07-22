@@ -27,7 +27,7 @@ FallBack CheckNewlyAllocated(const void* Memory) {
     };
 }
 
-void Dump(const SizeTracker Path, const size_t ItemRoom, void **DestinationItem, void **SourceItem) {
+void Dump(const SizeTracker Path, const size_t ItemRoom, void** DestinationItem, void** SourceItem) {
     /*
      * //IF YOU CAN FIGURE OUT HOW TO GET THIS IDEA WORKING PLEASE DO
     int ItemIndex = 0;
@@ -45,7 +45,7 @@ void Dump(const SizeTracker Path, const size_t ItemRoom, void **DestinationItem,
     *SourceItem = NULL;
 }
 
-void Pave(SizeTracker *Path, void **Item, const size_t ItemRoom) {
+void Pave(SizeTracker* Path, void** Item, const size_t ItemRoom) {
     if (Path->Count != Path->Limit) return; // Check if we need to actual run the function
 
     const int ChunkMemory = Path->Limit != 0 ? 0 : 4;
@@ -55,7 +55,7 @@ void Pave(SizeTracker *Path, void **Item, const size_t ItemRoom) {
     const FallBack Error = CheckNewlyAllocated(NewAllocation);
     if (Error.ReturnCode == 1) return;
 
-    Dump(*Path, ItemRoom, Item, &NewAllocation);
+    Dump(*Path, ItemRoom, &NewAllocation, Item);
     *Item = NewAllocation; // Replace the list
     Path->Limit = NewLimit; // Correct the limit
 }

@@ -75,8 +75,23 @@ _Bool MetOccurrence(const Game Game, const size_t AppearanceRequirement) {
     return 0; // Return the results
 }
 
-void AddSpot(Position *Position, const _Bool ADD) {
-    Pave(&Position->Path, (void**)&Position->Line, sizeof(_Bool));
+void AddSpot(Position* Position, const _Bool ADD) {
+    //Pave(&Position->Path, (void**)&Position->Line, sizeof(_Bool));
+
+    if (Position->Path.Count == Position->Path.Limit) {
+        const int ChunkMemory = Position->Path.Limit != 0 ? 0 : 4;
+        const int NewLimit = (int) (Position->Path.Limit << 1) + ChunkMemory;
+
+        void* NewAllocation = calloc(NewLimit, sizeof(_Bool));
+        const FallBack Error = CheckNewlyAllocated(NewAllocation);
+        if (Error.ReturnCode == 1) return;
+
+        memcpy(NewAllocation, Position->Line, Position->Path.Count * sizeof(_Bool));
+
+        free(Position->Line);
+        Position->Line = NewAllocation;
+        Position->Path.Limit = NewLimit;
+    }
 
     Position->Line[Position->Path.Count] = ADD;
     Position->Path.Count++;
