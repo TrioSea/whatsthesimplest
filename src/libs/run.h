@@ -26,9 +26,12 @@ typedef struct {
 
 _Bool* ReadPattern(const _Bool* Line, size_t PointInLine, int SequenceLength);
 void InsertOccurrence(Game* Game, _Bool* Pattern);
-void ModifyList(Position Position, Game* Game, int SequenceLength, size_t EndAt);
-_Bool MetOccurrence(Game Game, size_t AppearanceRequirement);
 void AddSpot(Position *Position, _Bool ADD);
+void QuickAdd(Game* Game, Position Position, int SequenceLength);
+
+void ModifyList(Position Position, Game* Game, int SequenceLength, size_t EndAt);
+_Bool MetOccurrence(Game Game, int AppearanceRequirement);
+
 void FillSpace(Position Home, Game Player1, Game Player2);
 
 #endif // WITSPG_MAIN_H
