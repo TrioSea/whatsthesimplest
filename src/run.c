@@ -40,8 +40,6 @@ _Bool EqualPatterns(const _Bool* PatternA, const _Bool* PatternB, const int Sequ
 }
 
 void InsertOccurrence(Game* Game, _Bool* Pattern, const int SequenceLength) {
-
-
     int PatternIndex = 0;
 
     // Make sure it's not a new pattern
@@ -49,6 +47,7 @@ void InsertOccurrence(Game* Game, _Bool* Pattern, const int SequenceLength) {
         // Iterating through every pattern, skip the ones that do not match ours
 
         if (EqualPatterns(Game->List[PatternIndex].Pattern, Pattern, SequenceLength) == 1) {
+            printf("%d ", PatternIndex);
             PrintPattern(Game->List[PatternIndex].Pattern, SequenceLength);
             printf(":Ac ");
             PrintPattern(Pattern, SequenceLength);
@@ -56,7 +55,6 @@ void InsertOccurrence(Game* Game, _Bool* Pattern, const int SequenceLength) {
 
             // If we hit, just increase the appearances and exit function
             Game->List[PatternIndex].Appearances++;
-            printf("Extra ");
             return;
 
         }
@@ -87,7 +85,7 @@ void QuickAdd(Game* Game, const Position Position, const int SequenceLength) {
     // Adds Last Occurrence to a list
     if (Position.Path.Count < SequenceLength) return;
 
-    const _Bool* Pattern = ReadPattern(Position.Line, (size_t) Position.Path.Count - SequenceLength, SequenceLength);
+    void* Pattern = ReadPattern(Position.Line, Position.Path.Count - SequenceLength, SequenceLength);
     InsertOccurrence(Game, Pattern, SequenceLength);
 
     free(Pattern);
