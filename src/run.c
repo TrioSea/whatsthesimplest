@@ -15,19 +15,53 @@ _Bool* ReadPattern(const _Bool* Line, const size_t PointInLine, const int Sequen
     return Pattern;
 }
 
-void InsertOccurrence(Game* Game, _Bool* Pattern) {
+void PrintPattern(const _Bool* Pattern, const int SequenceLength) {
+    int PatternIndex = 0;
+    while (PatternIndex < SequenceLength) {
+        printf("%c", TwoWayConversion(Pattern[PatternIndex], 'X', 1, 'O', 0));
+        PatternIndex++;
+    }
+}
+
+_Bool EqualPatterns(const _Bool* PatternA, const _Bool* PatternB, const int SequenceLength) {
+    int PatternIndex = 0;
+
+    while (PatternIndex < SequenceLength) {
+        if (PatternA[PatternIndex] != PatternB[PatternIndex]) {
+            return 0;
+        }
+
+        PatternIndex++;
+    }
+
+    return 1;
+
+    // return memcmp(PatternA, PatternB, sizeof(_Bool) * SequenceLength) != 0 ? 0 : 1;
+}
+
+void InsertOccurrence(Game* Game, _Bool* Pattern, const int SequenceLength) {
+
+
     int PatternIndex = 0;
 
     // Make sure it's not a new pattern
     while (PatternIndex < Game->Path.Count) {
         // Iterating through every pattern, skip the ones that do not match ours
-        if (Game->List[PatternIndex].Pattern != Pattern) {
-            PatternIndex++;
-        } else {
+
+        if (EqualPatterns(Game->List[PatternIndex].Pattern, Pattern, SequenceLength) == 1) {
+            PrintPattern(Game->List[PatternIndex].Pattern, SequenceLength);
+            printf(":Ac ");
+            PrintPattern(Pattern, SequenceLength);
+            printf(":Bc ");
+
             // If we hit, just increase the appearances and exit function
             Game->List[PatternIndex].Appearances++;
+            printf("Extra ");
             return;
+
         }
+
+        PatternIndex++;
     }
 
     // Make sure we have space to add the pattern
@@ -52,7 +86,12 @@ void AddSpot(Position* Position, const _Bool ADD) {
 void QuickAdd(Game* Game, const Position Position, const int SequenceLength) {
     // Adds Last Occurrence to a list
     if (Position.Path.Count < SequenceLength) return;
-    InsertOccurrence(Game, ReadPattern(Position.Line, (size_t) Position.Path.Count - SequenceLength, SequenceLength));
+
+    const _Bool* Pattern = ReadPattern(Position.Line, (size_t) Position.Path.Count - SequenceLength, SequenceLength);
+    InsertOccurrence(Game, Pattern, SequenceLength);
+
+    free(Pattern);
+    Pattern = NULL;
 }
 
 void ModifyList(const Position Position, Game* Game, const int SequenceLength, const size_t EndAt) {
@@ -66,7 +105,7 @@ void ModifyList(const Position Position, Game* Game, const int SequenceLength, c
         _Bool* Pattern = ReadPattern(Position.Line, Back, SequenceLength);
 
         // Use the pattern to only insert it
-        InsertOccurrence(Game, Pattern);
+        InsertOccurrence(Game, Pattern, SequenceLength);
         free(Pattern);
         Pattern = NULL;
 

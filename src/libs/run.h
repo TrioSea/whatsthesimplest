@@ -25,7 +25,9 @@ typedef struct {
 } Game;
 
 _Bool* ReadPattern(const _Bool* Line, size_t PointInLine, int SequenceLength);
-void InsertOccurrence(Game* Game, _Bool* Pattern);
+void PrintPattern(const _Bool* Pattern, int SequenceLength);
+
+void InsertOccurrence(Game* Game, _Bool* Pattern, int SequenceLength);
 void AddSpot(Position *Position, _Bool ADD);
 void QuickAdd(Game* Game, Position Position, int SequenceLength);
 
