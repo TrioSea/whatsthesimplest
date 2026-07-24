@@ -4,8 +4,6 @@ int main() {
     Set Element = Hold();
 
     while (1) {
-        SwapState(&Element.Full);
-
         const IO Action = HandleInput(Element.Full, Element.Home, 0);
 
         if (Action.Return == 1) break;
@@ -19,6 +17,8 @@ int main() {
         OutputResult(Result, Element.Player1Settings, Element.Player2Settings, Element.Full);
 
         if (Result.End == 1) break;
+
+        SwapState(&Element.Full);
     }
 
     Release(Element.Home.Line, &Element.Player1, &Element.Player2);
