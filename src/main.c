@@ -104,5 +104,7 @@ int main() {
     free(Player1.List);
     free(Player2.List);
 
+    printf("\n");
+
     return 0;
 }
