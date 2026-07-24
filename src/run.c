@@ -47,24 +47,15 @@ void InsertOccurrence(Game* Game, _Bool* Pattern, const int SequenceLength) {
         // Iterating through every pattern, skip the ones that do not match ours
 
         if (EqualPatterns(Game->List[PatternIndex].Pattern, Pattern, SequenceLength) == 1) {
-            printf("%d ", PatternIndex);
-            PrintPattern(Game->List[PatternIndex].Pattern, SequenceLength);
-            printf(":Ac ");
-            PrintPattern(Pattern, SequenceLength);
-            printf(":Bc ");
-
             // If we hit, just increase the appearances and exit function
-            Game->List[PatternIndex].Appearances++;
-            return;
 
+            Game->List[PatternIndex].Appearances++;
+
+            return;
         }
 
         PatternIndex++;
     }
-
-    printf("\n");
-    PrintPattern(Pattern, SequenceLength);
-    printf("\n");
 
     // Make sure we have space to add the pattern
     Pave(&Game->Path, (void**) &Game->List, sizeof(Occurrence));
