@@ -52,7 +52,7 @@ int main() {
         const char Input = (char) getchar();
         const _Bool In = (_Bool) TwoWayConversion(Input, 'X', 1, 'O', 0);
 
-        const char Garbage = (char) getchar();
+        const char Garbage = (char) getchar(); // grabs the new line when returning
 
         //AddSpot(&Home, In);
 

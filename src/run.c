@@ -62,8 +62,12 @@ void InsertOccurrence(Game* Game, _Bool* Pattern, const int SequenceLength) {
         PatternIndex++;
     }
 
+    printf("\n");
+    PrintPattern(Pattern, SequenceLength);
+    printf("\n");
+
     // Make sure we have space to add the pattern
-    Pave(&Game->Path, (void**)&Game->List, sizeof(Occurrence));
+    Pave(&Game->Path, (void**) &Game->List, sizeof(Occurrence));
 
     // Add the pattern
     Game->List[Game->Path.Count] = (Occurrence) {
@@ -75,7 +79,7 @@ void InsertOccurrence(Game* Game, _Bool* Pattern, const int SequenceLength) {
 }
 
 void AddSpot(Position* Position, const _Bool ADD) {
-    Pave(&Position->Path, (void**)&Position->Line, sizeof(_Bool));
+    Pave(&Position->Path, (void**) &Position->Line, sizeof(_Bool));
 
     Position->Line[Position->Path.Count] = ADD;
     Position->Path.Count++;
