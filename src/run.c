@@ -91,9 +91,6 @@ void QuickAdd(Game* Game, const Position Position, const int SequenceLength) {
 
     void* Pattern = ReadPattern(Position.Line, Position.Path.Count - SequenceLength, SequenceLength);
     InsertOccurrence(Game, Pattern, SequenceLength);
-
-    free(Pattern);
-    Pattern = NULL;
 }
 
 void ModifyList(const Position Position, Game* Game, const int SequenceLength, const size_t EndAt) {
