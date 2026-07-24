@@ -35,73 +35,52 @@ int main() {
 
     _Bool NewPlayer = 0;
     _Bool StartingPlayer = 0;
-
     _Bool GameEnded = 0;
-
     while (GameEnded == 0) {
         // switch player state
         if (StartingPlayer == 1) NewPlayer = 0;
         if (StartingPlayer == 0) NewPlayer = 1;
         StartingPlayer = NewPlayer;
 
-        // print out to the player for input
-        const char PlayerNumeration = TwoWayConversion(StartingPlayer, '1', 1, '2', 0);
-        printf("Player %c; ", PlayerNumeration);
-
-        // reiterate the line to the player
-        int ThroughLine = 0;
-        while (ThroughLine < Home.Path.Count) {
-            const char PreviousInput = TwoWayConversion(Home.Line[ThroughLine], 'X', 1, 'O', 0);
-            printf("%c", PreviousInput);
-
-            ThroughLine++;
-        }
-
         // get input from the player
-        const char Input = (char) getchar();
-        const _Bool In = (_Bool) TwoWayConversion(Input, 'X', 1, 'O', 0);
+        const IO Action = HandleInput(StartingPlayer, Home, 0);
 
-        getchar(); // trashes grabs the new line when returning
+        if (Action.Return == 1) break;
 
-        AddSpot(&Home, In); // places the input into the line
+        AddSpot(&Home, Action.Play); // places the input into the line
 
         // reiterate the new patterns
         QuickAdd(&Player1, Home, Player1Settings.Length);
         QuickAdd(&Player2, Home, Player2Settings.Length);
 
         // check if the game is over
-        const GameResult Player1Won = MetOccurrence(Player1, Player1Settings.Repeats);
-        const GameResult Player2Won = MetOccurrence(Player2, Player2Settings.Repeats);
+        const GameConclude Result = GameEnding(Player1, Player2, Player1Settings, Player2Settings, StartingPlayer);
 
-        if (Player1Won.End || Player2Won.End) {
-            GameEnded = 1;
+        GameEnded = Result.End;
 
-            if (Player1Won.End && Player2Won.End) {
-                printf("Game Drew!");
-            }
-
-            if (Player1Won.End == 1) {
-                if (Player2Won.End == 0) {
-                    printf("Player 1 won the game!");
-                }
-
-                printf("\n Player1: ");
-                PrintPattern(Player1Won.Pattern, Player1Settings.Length);
-            }
-
-            if (Player2Won.End == 1) {
-                if (Player1Won.End == 0) {
-                    printf("Player 2 won the game!");
-                }
-
-                printf("\n Player2: ");
-                PrintPattern(Player2Won.Pattern, Player2Settings.Length);
-            }
-        }
+        if (GameEnded == 1) OutputResult(Result, Player1Settings, Player2Settings, StartingPlayer);
     }
 
     free(Home.Line);
+
+    int PlayIndex;
+
+    PlayIndex = 0;
+    while (PlayIndex < Player1.Path.Count) {
+        _Bool* Pattern = Player1.List[PlayIndex].Pattern;
+        free(Pattern);
+        Pattern = NULL;
+        PlayIndex++;
+    }
     free(Player1.List);
+
+    PlayIndex = 0;
+    while (PlayIndex < Player2.Path.Count) {
+        _Bool* Pattern = Player2.List[PlayIndex].Pattern;
+        free(Pattern);
+        Pattern = NULL;
+        PlayIndex++;
+    }
     free(Player2.List);
 
     printf("\n");
