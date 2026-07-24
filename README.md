@@ -17,5 +17,3 @@ These two patterns would need to be the indifferent in order.
 For the player who has their first turn after the other to win, they would need four patterns on the line in the same way.
 
 If you need direction because you do not know how to run/execute the code (to play ofcourse), search for GNU, Clang, or Visual Studio.
-You can run "cmake --build cmake --target witspg -j 10" if you have the proper dependencies.
-Just make sure that the folder containing all of the files is named "witspg" which stands for What is the Simplest Possible Game?
