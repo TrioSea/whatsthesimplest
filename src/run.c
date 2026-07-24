@@ -103,36 +103,19 @@ void ModifyList(const Position Position, Game* Game, const int SequenceLength, c
     }
 }
 
-_Bool MetOccurrence(const Game Game, const int AppearanceRequirement) {
+GameResult MetOccurrence(const Game Game, const int AppearanceRequirement) {
     int OccurrenceIndex = 0;
 
     while (OccurrenceIndex < Game.Path.Count) {
-        if (Game.List[OccurrenceIndex].Appearances < AppearanceRequirement) {
-            OccurrenceIndex++; // Running through all occurrences until one meets requirement
-        } else {
-            return 1;
+        if (Game.List[OccurrenceIndex].Appearances >= AppearanceRequirement) {
+            return (GameResult) {
+                .End = 1,
+                .Pattern = Game.List[OccurrenceIndex].Pattern
+            };
         }
+
+        OccurrenceIndex++; // Running through all occurrences until one meets requirement
     }
 
-    return 0; // Return the results
-}
-
-void FillSpace(Position Home, Game Player1, Game Player2) {
-    FallBack Error;
-    const SizeTracker DemoPath = (SizeTracker) { 0 };
-
-    Home.Line = calloc(0, sizeof(_Bool));
-    Home.Path = DemoPath;
-    Error = CheckNewlyAllocated(Home.Line);
-    if (Error.ReturnCode == 1) return;
-
-    Player1.List = calloc(0, sizeof(Occurrence));
-    Player1.Path = DemoPath;
-    Error = CheckNewlyAllocated(Player1.List);
-    if (Error.ReturnCode == 1) return;
-
-    Player2.List = calloc(0, sizeof(Occurrence));
-    Player2.Path = DemoPath;
-    Error = CheckNewlyAllocated(Player2.List);
-    if (Error.ReturnCode == 1) return;
+    return (GameResult) { 0 }; // Return the results
 }

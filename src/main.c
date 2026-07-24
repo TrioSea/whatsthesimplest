@@ -5,9 +5,6 @@ int main() {
     Game Player1;
     Game Player2;
 
-    //FillSpace(Home, Player1, Player2);
-    // i dont like how it keeps on bugging me that it might not be initialized
-
     FallBack Error;
     const SizeTracker DemoPath = (SizeTracker) { 0 };
 
@@ -26,7 +23,15 @@ int main() {
     Error = CheckNewlyAllocated(Player2.List);
     if (Error.ReturnCode == 1) return Error.Code;
 
-    //
+    const Settings Player1Settings = {
+        .Repeats = 2,
+        .Length = 5
+    };
+
+    const Settings Player2Settings = {
+        .Repeats = 4,
+        .Length = 3
+    };
 
     _Bool NewPlayer = 0;
     _Bool StartingPlayer = 0;
@@ -34,13 +39,16 @@ int main() {
     _Bool GameEnded = 0;
 
     while (GameEnded == 0) {
+        // switch player state
         if (StartingPlayer == 1) NewPlayer = 0;
         if (StartingPlayer == 0) NewPlayer = 1;
         StartingPlayer = NewPlayer;
 
+        // print out to the player for input
         const char PlayerNumeration = TwoWayConversion(StartingPlayer, '1', 1, '2', 0);
         printf("Player %c; ", PlayerNumeration);
 
+        // reiterate the line to the player
         int ThroughLine = 0;
         while (ThroughLine < Home.Path.Count) {
             const char PreviousInput = TwoWayConversion(Home.Line[ThroughLine], 'X', 1, 'O', 0);
@@ -49,49 +57,45 @@ int main() {
             ThroughLine++;
         }
 
+        // get input from the player
         const char Input = (char) getchar();
         const _Bool In = (_Bool) TwoWayConversion(Input, 'X', 1, 'O', 0);
 
-        const char Garbage = (char) getchar(); // grabs the new line when returning
+        getchar(); // trashes grabs the new line when returning
 
-        //AddSpot(&Home, In);
+        AddSpot(&Home, In); // places the input into the line
 
-        if (Home.Path.Count >= Home.Path.Limit) {
-            const int ChunkMemory = Home.Path.Limit != 0 ? 0 : 4;
-            const int NewLimit = (int) (Home.Path.Limit << 1) + ChunkMemory;
+        // reiterate the new patterns
+        QuickAdd(&Player1, Home, Player1Settings.Length);
+        QuickAdd(&Player2, Home, Player2Settings.Length);
 
-            _Bool* NewAllocation = calloc(NewLimit, sizeof(_Bool));
-            const FallBack ErrorHere = CheckNewlyAllocated(NewAllocation);
-            if (Error.ReturnCode == 1) return ErrorHere.Code;
+        // check if the game is over
+        const GameResult Player1Won = MetOccurrence(Player1, Player1Settings.Repeats);
+        const GameResult Player2Won = MetOccurrence(Player2, Player2Settings.Repeats);
 
-            memcpy(NewAllocation, Home.Line, Home.Path.Count * sizeof(_Bool));
-
-            free(Home.Line);
-            Home.Line = NewAllocation;
-            Home.Path.Limit = NewLimit;
-        }
-
-        Home.Line[Home.Path.Count] = In;
-        Home.Path.Count++;
-
-        QuickAdd(&Player1, Home, 5);
-        QuickAdd(&Player2, Home, 3);
-
-        const _Bool Player1Won = MetOccurrence(Player1, 2);
-        const _Bool Player2Won = MetOccurrence(Player2, 4);
-
-        if (Player1Won || Player2Won) {
+        if (Player1Won.End || Player2Won.End) {
             GameEnded = 1;
 
-            if (Player1Won && Player2Won) {
+            if (Player1Won.End && Player2Won.End) {
                 printf("Game Drew!");
-            } else {
-                if (Player1Won == 1 && Player2Won == 0) {
+            }
+
+            if (Player1Won.End == 1) {
+                if (Player2Won.End == 0) {
                     printf("Player 1 won the game!");
                 }
-                if (Player1Won == 0 && Player2Won == 1) {
+
+                printf("\n Player1: ");
+                PrintPattern(Player1Won.Pattern, Player1Settings.Length);
+            }
+
+            if (Player2Won.End == 1) {
+                if (Player1Won.End == 0) {
                     printf("Player 2 won the game!");
                 }
+
+                printf("\n Player2: ");
+                PrintPattern(Player2Won.Pattern, Player2Settings.Length);
             }
         }
     }

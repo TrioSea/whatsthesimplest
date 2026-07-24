@@ -46,12 +46,12 @@ void Dump(const SizeTracker Path, const size_t ItemRoom, void** DestinationItem,
 }
 
 void Pave(SizeTracker* Path, void** Item, const size_t ItemRoom) {
-    if (Path->Count != Path->Limit) return; // Check if we need to actual run the function
+    if (Path->Count < Path->Limit) return; // Check if we need to actual run the function
 
     const int ChunkMemory = Path->Limit != 0 ? 0 : 4;
     const int NewLimit = (int) (Path->Limit << 1) + ChunkMemory;
 
-    void *NewAllocation = calloc(NewLimit, ItemRoom);
+    void* NewAllocation = calloc(NewLimit, ItemRoom);
     const FallBack Error = CheckNewlyAllocated(NewAllocation);
     if (Error.ReturnCode == 1) return;
 
