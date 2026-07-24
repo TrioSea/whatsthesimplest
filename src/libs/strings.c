@@ -33,16 +33,13 @@ void Dump(const SizeTracker Path, const size_t ItemRoom, void** DestinationItem,
     int ItemIndex = 0;
     while (ItemIndex < Path.Count) {
         ((Type*) *DestinationItem)[ItemIndex] = ((Type*) *SourceItem)[ItemIndex]; // Copy old contents into new allocation
-        // I dont want these to be restricted to just a boolean, is there a memory function?
+        // I dont want these to be restricted to just a _Bool or Occurrence, is there a better way other than memcpy?
 
         ItemIndex++;
     }
     */
 
     memcpy(*DestinationItem, *SourceItem, Path.Count * ItemRoom);
-
-    free(*SourceItem); // Dump the old list
-    *SourceItem = NULL;
 }
 
 void Pave(SizeTracker* Path, void** Item, const size_t ItemRoom) {
@@ -56,6 +53,7 @@ void Pave(SizeTracker* Path, void** Item, const size_t ItemRoom) {
     if (Error.ReturnCode == 1) return;
 
     Dump(*Path, ItemRoom, &NewAllocation, Item);
+    free(*Item); // Dump the old list
     *Item = NewAllocation; // Replace the list
     Path->Limit = NewLimit; // Correct the limit
 }

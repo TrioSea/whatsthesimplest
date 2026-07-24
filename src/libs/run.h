@@ -6,16 +6,6 @@
 
 typedef struct {
     _Bool* Pattern;
-    size_t Appearances;
-} Occurrence;
-
-typedef struct {
-    int Repeats;
-    int Length;
-} Settings;
-
-typedef struct {
-    _Bool* Pattern;
     _Bool End;
 } GameResult;
 
@@ -35,14 +25,39 @@ typedef struct {
 } IO;
 
 typedef struct {
+    int Repeats;
+    int Length;
+} Settings;
+
+typedef struct {
     _Bool* Line;
     SizeTracker Path;
 } Position;
 
 typedef struct {
+    _Bool* Pattern;
+    size_t Appearances;
+} Occurrence;
+
+typedef struct {
     Occurrence* List;
     SizeTracker Path;
 } Game;
+
+typedef struct {
+    Game Player1;
+    Game Player2;
+    Settings Player1Settings;
+    Settings Player2Settings;
+    _Bool Full;
+    Position Home;
+    int ErrorCode;
+} Set;
+
+Set Hold();
+void Release(_Bool* Line, Game* Player1, Game* Player2);
+
+void SwapState(_Bool* State);
 
 _Bool* ReadPattern(const _Bool* Line, size_t PointInLine, int SequenceLength);
 void PrintPattern(const _Bool* Pattern, int SequenceLength);
@@ -56,12 +71,10 @@ void AddSpot(Position *Position, _Bool ADD);
 void QuickAdd(Game* Game, Position Position, int SequenceLength);
 
 void ModifyList(Position Position, Game* Game, int SequenceLength, size_t EndAt);
-GameConclude Simulate(Position Position, const _Bool* Pattern);
+GameConclude Simulate(Position Copy, const _Bool* Sequence);
 
 GameResult MetOccurrence(Game Game, int AppearanceRequirement);
 GameConclude GameEnding(Game Player1, Game Player2, Settings Player1Settings, Settings Player2Settings, _Bool WeStart);
 void OutputResult(GameConclude Result, Settings Player1Settings, Settings Player2Settings, _Bool StartingPlayer);
-
-
 
 #endif // WITSPG_MAIN_H

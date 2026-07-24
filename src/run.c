@@ -1,5 +1,91 @@
 #include "libs/run.h"
 
+Set Hold() {
+    Set Element = (Set) {
+        .Player1 = (Game) {
+            .List = calloc(0, sizeof(Occurrence)),
+            .Path = (SizeTracker) { 0 }
+        },
+        .Player2 = (Game) {
+            .List = calloc(0, sizeof(Occurrence)),
+            .Path = (SizeTracker) { 0 }
+        },
+        .Player1Settings = (Settings) {
+            .Repeats = 2,
+            .Length = 5
+        },
+        .Player2Settings = (Settings) {
+            .Repeats = 4,
+            .Length = 3
+        },
+        .Full = 1,
+        .Home = (Position) {
+            .Line = calloc(0, sizeof(_Bool)),
+            .Path = (SizeTracker) { 0 }
+        },
+    };
+
+    FallBack Error;
+
+    Error = CheckNewlyAllocated(Element.Home.Line);
+    if (Error.ReturnCode == 1) Element.ErrorCode = Error.Code;
+
+    Error = CheckNewlyAllocated(Element.Player1.List);
+    if (Error.ReturnCode == 1) Element.ErrorCode = Error.Code;
+
+    Error = CheckNewlyAllocated(Element.Player2.List);
+    if (Error.ReturnCode == 1) Element.ErrorCode = Error.Code;
+
+    return Element;
+}
+
+void Release(_Bool* Line, Game* Player1, Game* Player2) {
+    free(Line);
+    Line = NULL;
+
+    int Beta;
+    int* PlayIndex = &Beta;
+
+    while (*PlayIndex < Player1->Path.Count) {
+        _Bool* Pattern = Player1->List[*PlayIndex].Pattern;
+
+        free(Pattern);
+        Pattern = NULL;
+
+        (*PlayIndex)++;
+    }
+
+    *PlayIndex = 0;
+
+    free(Player1->List);
+    Player1->List = NULL;
+
+    while (*PlayIndex < Player2->Path.Count) {
+        _Bool* Pattern = Player2->List[*PlayIndex].Pattern;
+
+        free(Pattern);
+        Pattern = NULL;
+
+        (*PlayIndex)++;
+    }
+
+    *PlayIndex = 0;
+
+    free(Player2->List);
+    Player2->List = NULL;
+}
+
+void SwapState(_Bool* State) {
+    if (*State == 0) {
+        *State = 1;
+        return;
+    }
+    if (*State == 1) {
+        *State = 0;
+        return;
+    }
+}
+
 _Bool* ReadPattern(const _Bool* Line, const size_t PointInLine, const int SequenceLength) {
     _Bool* Pattern = calloc(SequenceLength, sizeof(_Bool)); // Clear up a pattern
     const FallBack Error = CheckNewlyAllocated(Pattern);
@@ -117,21 +203,29 @@ IO HandleInput(const _Bool StartingPlayer, const Position Position, const char D
     return Out;
 }
 
-void InsertOccurrence(Game* Game, _Bool* Pattern, const int SequenceLength) {
+static int ScrollList(const Game Game, const _Bool* Pattern, const int SequenceLength) {
     int PatternIndex = 0;
-    // Make sure it's not a new pattern
-    while (PatternIndex < Game->Path.Count) {
+
+    while (PatternIndex < Game.Path.Count) {
         // Iterating through every pattern, skip the ones that do not match ours
 
-        if (EqualPatterns(Game->List[PatternIndex].Pattern, Pattern, SequenceLength) == 1) {
-            // If we hit, just increase the appearances and exit function
-
-            Game->List[PatternIndex].Appearances++;
-
-            return;
-        }
+        if (EqualPatterns(Game.List[PatternIndex].Pattern, Pattern, SequenceLength) == 1) return PatternIndex;
 
         PatternIndex++;
+    }
+
+    return -1;
+}
+
+void InsertOccurrence(Game* Game, _Bool* Pattern, const int SequenceLength) {
+    const int PatternIndex = ScrollList(*Game, Pattern, SequenceLength);
+
+    // Make sure it's not a new pattern
+    if (PatternIndex >= 0) {
+        // If we hit, just increase the appearances and exit function
+        Game->List[PatternIndex].Appearances++;
+
+        return;
     }
 
     // Make sure we have space to add the pattern
@@ -173,60 +267,36 @@ void ModifyList(const Position Position, Game* Game, const int SequenceLength, c
 
         // Use the pattern to only insert it
         InsertOccurrence(Game, Pattern, SequenceLength);
-        free(Pattern);
-        Pattern = NULL;
 
         Back--;
     }
 }
 
-GameConclude Simulate(Position Position, const _Bool* Pattern) {
-    const int SequenceLength = (int) sizeof(*Pattern) / sizeof(_Bool);
+GameConclude Simulate(const Position Copy, const _Bool* Sequence) {
+    const int SequenceLength = (int) sizeof(*Sequence) / sizeof(_Bool);
 
-    FallBack Error;
-    const SizeTracker DemoPath = (SizeTracker) { 0 };
-    GameConclude Take = { 0 };
-    Take.Error = 1;
+    Set Element = Hold();
 
-    Game Player1;
-    Game Player2;
-
-    Player1.List = calloc(0, sizeof(Occurrence));
-    Player1.Path = DemoPath;
-    Error = CheckNewlyAllocated(Player1.List);
-    if (Error.ReturnCode == 1) return Take;
-
-    Player2.List = calloc(0, sizeof(Occurrence));
-    Player2.Path = DemoPath;
-    Error = CheckNewlyAllocated(Player2.List);
-    if (Error.ReturnCode == 1) return Take;
-
-    const Settings Player1Settings = {
-        .Repeats = 2,
-        .Length = 5
+    free(Element.Home.Line);
+    Element.Home = (Position) {
+        .Path = Copy.Path,
+        .Line = calloc(Element.Home.Path.Limit, sizeof(_Bool))
     };
 
-    const Settings Player2Settings = {
-        .Repeats = 4,
-        .Length = 3
-    };
+    Dump(Element.Home.Path, sizeof(_Bool), (void**) &Element.Home.Line, (void**) &Copy.Line);
 
-    ModifyList(Position, &Player1, Player1Settings.Length, Position.Path.Count);
-    ModifyList(Position, &Player2, Player2Settings.Length, Position.Path.Count);
+    ModifyList(Element.Home, &Element.Player1, Element.Player1Settings.Length, Element.Home.Path.Count);
+    ModifyList(Element.Home, &Element.Player2, Element.Player2Settings.Length, Element.Home.Path.Count);
 
     int PatternIndex = 0;
 
     while (PatternIndex < SequenceLength) {
-        AddSpot(&Position, Pattern[PatternIndex]);
-
-
-
-
-
-
+        AddSpot(&Element.Home, Sequence[PatternIndex]);
 
         PatternIndex++;
     }
+
+    Release(Element.Home.Line, &Element.Player1, &Element.Player2);
 }
 
 GameResult MetOccurrence(const Game Game, const int AppearanceRequirement) {
@@ -263,6 +333,8 @@ GameConclude GameEnding(const Game Player1, const Game Player2, const Settings P
 }
 
 void OutputResult(const GameConclude Result, const Settings Player1Settings, const Settings Player2Settings, const _Bool StartingPlayer) {
+    if (Result.End != 1) return;
+
     if (Result.Drew) {
         printf("Game Drew!");
 
