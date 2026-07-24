@@ -56,11 +56,11 @@ int main() {
 
         //AddSpot(&Home, In);
 
-        if (Home.Path.Count == Home.Path.Limit) {
+        if (Home.Path.Count >= Home.Path.Limit) {
             const int ChunkMemory = Home.Path.Limit != 0 ? 0 : 4;
             const int NewLimit = (int) (Home.Path.Limit << 1) + ChunkMemory;
 
-            void* NewAllocation = calloc(NewLimit, sizeof(_Bool));
+            _Bool* NewAllocation = calloc(NewLimit, sizeof(_Bool));
             const FallBack ErrorHere = CheckNewlyAllocated(NewAllocation);
             if (Error.ReturnCode == 1) return ErrorHere.Code;
 
