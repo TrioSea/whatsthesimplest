@@ -64,7 +64,8 @@ void PrintPattern(const _Bool* Pattern, int SequenceLength);
 _Bool EqualPatterns(const _Bool* PatternA, const _Bool* PatternB, int SequenceLength);
 
 
-IO HandleInput(_Bool StartingPlayer, Position Position, char Disregard);
+void PrintLine(Position Position);
+IO HandleInput(_Bool StartingPlayer, Position Position, char Disregard, char Override);
 
 void InsertOccurrence(Game* Game, _Bool* Pattern, int SequenceLength);
 void AddSpot(Position *Position, _Bool ADD);

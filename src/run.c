@@ -1,4 +1,4 @@
-#include "libs/run.h"
+#include "headers/run.h"
 
 Set Hold() {
     Set Element = (Set) {
@@ -127,26 +127,32 @@ _Bool EqualPatterns(const _Bool* PatternA, const _Bool* PatternB, const int Sequ
 
 
 
-IO HandleInput(const _Bool StartingPlayer, const Position Position, const char Disregard) {
+void PrintLine(const Position Position) {
+    int ThroughLine = 0;
+    while (ThroughLine < Position.Path.Count) {
+        const char PreviousInput = TwoWayConversion(Position.Line[ThroughLine], 'X', 1, 'O', 0);
+        printf("%c", PreviousInput);
+
+        ThroughLine++;
+    }
+}
+
+IO HandleInput(const _Bool StartingPlayer, const Position Position, const char Disregard, const char Override) {
     char Input = Disregard;
 
-    if (Disregard == 0) {
+    if (Input == 0 && Override == 0) {
         // print out to the player for input
         const char PlayerNumeration = TwoWayConversion(StartingPlayer, '1', 1, '2', 0);
         printf("Player %c; ", PlayerNumeration);
 
         // reiterate the line to the player
-        int ThroughLine = 0;
-        while (ThroughLine < Position.Path.Count) {
-            const char PreviousInput = TwoWayConversion(Position.Line[ThroughLine], 'X', 1, 'O', 0);
-            printf("%c", PreviousInput);
-
-            ThroughLine++;
-        }
+        PrintLine(Position);
 
         Input = (char) getchar();
         getchar(); // trashes grabs the new line when returning
     }
+
+    if (Override != 0) Input = Override;
 
     IO Out = { 0 };
     
@@ -158,7 +164,7 @@ IO HandleInput(const _Bool StartingPlayer, const Position Position, const char D
     if (Input != 'X' && Input != 'O' && Input != 'E' && Input != 'A') {
         printf("No option is case sensitive. Please pick either X or an O. You can resign the game with an E. Ask for a draw with an A.\n");
 
-        Out = HandleInput(StartingPlayer, Position, 0);
+        Out = HandleInput(StartingPlayer, Position, 0, 0);
     }
 
     if (Input == 'X' || Input == 'O') {
@@ -196,7 +202,7 @@ IO HandleInput(const _Bool StartingPlayer, const Position Position, const char D
         if (AcceptanceInput == 'D') {
             printf("Player %c declined a draw offer!\n", OtherPlayerNumeration);
 
-            Out = HandleInput(StartingPlayer, Position, Disregards);
+            Out = HandleInput(StartingPlayer, Position, Disregards, 0);
         }
     }
 
@@ -297,6 +303,8 @@ GameConclude Simulate(const Position Copy, const _Bool* Sequence) {
     }
 
     Release(Element.Home.Line, &Element.Player1, &Element.Player2);
+
+    return (GameConclude) {0};
 }
 
 GameResult MetOccurrence(const Game Game, const int AppearanceRequirement) {
