@@ -3,12 +3,12 @@
 int main() {
     Set Element = Hold();
 
-    const _Bool ClientPlayingStarter = 0;
+    const _Bool ClientPlayingStarter = 1;
 
     while (1) {
         // Input Handled
         char Override = 0;
-        if (ClientPlayingStarter != Element.Full) Override = 'X';
+        if (ClientPlayingStarter != Element.Full) Override = 0;
 
         const IO Action = HandleInput(Element.Full, Element.Home, 0, Override);
 
@@ -22,7 +22,7 @@ int main() {
 
         // Game check
         const GameConclude Result = GameEnding(Element.Player1, Element.Player2, Element.Player1Settings, Element.Player2Settings, Element.Full);
-        OutputResult(Result, Element.Player1Settings, Element.Player2Settings, Element.Full);
+        OutputResult(Result, Element.Player1Settings, Element.Player2Settings, Element.Full, ClientPlayingStarter);
 
         if (Result.End == 1) break;
 

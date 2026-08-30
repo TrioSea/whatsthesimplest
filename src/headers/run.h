@@ -76,6 +76,6 @@ GameConclude Simulate(Position Copy, const _Bool* Sequence);
 
 GameResult MetOccurrence(Game Game, int AppearanceRequirement);
 GameConclude GameEnding(Game Player1, Game Player2, Settings Player1Settings, Settings Player2Settings, _Bool WeStart);
-void OutputResult(GameConclude Result, Settings Player1Settings, Settings Player2Settings, _Bool StartingPlayer);
+void OutputResult(GameConclude Result, Settings Player1Settings, Settings Player2Settings, _Bool StartingPlayer, _Bool Player);
 
 #endif // WITSPG_MAIN_H

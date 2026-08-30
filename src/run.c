@@ -340,20 +340,29 @@ GameConclude GameEnding(const Game Player1, const Game Player2, const Settings P
     return Conclusion;
 }
 
-void OutputResult(const GameConclude Result, const Settings Player1Settings, const Settings Player2Settings, const _Bool StartingPlayer) {
+void OutputResult(const GameConclude Result, const Settings Player1Settings, const Settings Player2Settings, const _Bool StartingPlayer, const _Bool Player) {
     if (Result.End != 1) return;
 
-    if (Result.Drew) {
-        printf("Game Drew!");
+    const char PlayerNumeration = TwoWayConversion(Player, '1', 1, '2', 0);
+    const char PlayerFinisherNumeration = TwoWayConversion(StartingPlayer, '1', 1, '2', 0);
 
-        printf("\n Player1: ");
+    if (Result.Drew) {
+        if (StartingPlayer != Player) printf("They");
+        if (StartingPlayer == Player) printf("We");
+
+        printf(" Drew the Game! (Player ");
+        printf("%c", PlayerFinisherNumeration);
+        printf(")");
+
+        printf("\n Player 1: ");
         PrintPattern(Result.Player1Pattern, Player1Settings.Length);
 
-        printf("\n Player2: ");
+        printf("\n Player 2: ");
         PrintPattern(Result.Player2Pattern, Player2Settings.Length);
     } else {
-        const char PlayerNumeration = TwoWayConversion(StartingPlayer, '1', 1, '2', 0);
-        printf("We (Player %c) ", PlayerNumeration);
+        printf("We (Player ");
+        printf("%c", PlayerNumeration);
+        printf(") ");
 
         if (Result.WeWon == 1) printf("Won");
         if (Result.WeWon == 0) printf("Lost");
@@ -365,6 +374,8 @@ void OutputResult(const GameConclude Result, const Settings Player1Settings, con
         if (Outcome == 1) PrintPattern(Result.Player2Pattern, Player2Settings.Length);
         if (Outcome == 0) PrintPattern(Result.Player1Pattern, Player1Settings.Length);
 
+        printf("!\nThe game was finished by Player ");
+        printf("%c", PlayerFinisherNumeration);
         printf("!");
     }
 }
