@@ -8,7 +8,9 @@ int main() {
     while (1) {
         // Input Handled
         char Override = 0;
-        if (ClientPlayingStarter != Element.Full) Override = 0;
+        const char Potential = GameBot(3, Element.Home.Line);
+
+        if (ClientPlayingStarter != Element.Full) Override = Potential;
 
         const IO Action = HandleInput(Element.Full, Element.Home, 0, Override);
 

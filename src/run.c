@@ -281,19 +281,23 @@ void ModifyList(const Position Position, Game* Game, const int SequenceLength, c
 GameConclude Simulate(const Position Copy, const _Bool* Sequence) {
     const int SequenceLength = (int) sizeof(*Sequence) / sizeof(_Bool);
 
+    // Get the simulation
     Set Element = Hold();
 
+    // Copy "Copy" into Element in a way to create the line identically in two separate spaces in memory
     free(Element.Home.Line);
-    Element.Home = (Position) {
-        .Path = Copy.Path,
-        .Line = calloc(Element.Home.Path.Limit, sizeof(_Bool))
-    };
+
+    Element.Home.Path = Copy.Path;
+    Element.Home.Line = calloc(Element.Home.Path.Limit, sizeof(_Bool));
 
     Dump(Element.Home.Path, sizeof(_Bool), (void**) &Element.Home.Line, (void**) &Copy.Line);
+    memcpy(Element.Home.Line, Copy.Line, Element.Home.Path.Count * sizeof(_Bool));
 
+    // *Sub-Comment*: Making the game a bit harder on compute by passing less through "Simulate" to use.
     ModifyList(Element.Home, &Element.Player1, Element.Player1Settings.Length, Element.Home.Path.Count);
     ModifyList(Element.Home, &Element.Player2, Element.Player2Settings.Length, Element.Home.Path.Count);
 
+    // Asserts sequence
     int PatternIndex = 0;
 
     while (PatternIndex < SequenceLength) {
@@ -302,9 +306,16 @@ GameConclude Simulate(const Position Copy, const _Bool* Sequence) {
         PatternIndex++;
     }
 
+    // Calls off the function (finish later)
     Release(Element.Home.Line, &Element.Player1, &Element.Player2);
 
-    return (GameConclude) {0};
+    return (GameConclude) { 0 }; // Template return
+}
+
+char GameBot(const signed char Level, const _Bool* CurrentPlay) {
+    // Response, Level is -3 to 3
+
+    return 'X';
 }
 
 GameResult MetOccurrence(const Game Game, const int AppearanceRequirement) {

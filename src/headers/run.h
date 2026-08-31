@@ -73,6 +73,7 @@ void QuickAdd(Game* Game, Position Position, int SequenceLength);
 
 void ModifyList(Position Position, Game* Game, int SequenceLength, size_t EndAt);
 GameConclude Simulate(Position Copy, const _Bool* Sequence);
+char GameBot(signed char Level, const _Bool* CurrentPlay);
 
 GameResult MetOccurrence(Game Game, int AppearanceRequirement);
 GameConclude GameEnding(Game Player1, Game Player2, Settings Player1Settings, Settings Player2Settings, _Bool WeStart);
