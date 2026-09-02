@@ -54,6 +54,10 @@ typedef struct {
     int ErrorCode;
 } Set;
 
+typedef struct {
+    _Bool DoO;
+} BotMemory;
+
 Set Hold();
 void Release(_Bool* Line, Game* Player1, Game* Player2);
 
@@ -72,11 +76,11 @@ void AddSpot(Position *Position, _Bool ADD);
 void QuickAdd(Game* Game, Position Position, int SequenceLength);
 
 void ModifyList(Position Position, Game* Game, int SequenceLength, size_t EndAt);
-GameConclude Simulate(Position Copy, const _Bool* Sequence);
-char GameBot(signed char Level, const _Bool* CurrentPlay);
+GameConclude Simulate(Position Copy, const _Bool* Sequence, _Bool WeStart);
+char GameBot(signed char Level, const _Bool* CurrentPlay, BotMemory* Memory);
 
 GameResult MetOccurrence(Game Game, int AppearanceRequirement);
-GameConclude GameEnding(Game Player1, Game Player2, Settings Player1Settings, Settings Player2Settings, _Bool WeStart);
-void OutputResult(GameConclude Result, Settings Player1Settings, Settings Player2Settings, _Bool StartingPlayer, _Bool Player);
+GameConclude GameEnding(Game Player1, Game Player2, Settings Player1Settings, Settings Player2Settings, _Bool AssumeStart);
+void OutputResult(Position Position, GameConclude Result, Settings Player1Settings, Settings Player2Settings, _Bool StartingPlayer, _Bool Player);
 
 #endif // WITSPG_MAIN_H

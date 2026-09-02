@@ -80,10 +80,7 @@ void SwapState(_Bool* State) {
         *State = 1;
         return;
     }
-    if (*State == 1) {
-        *State = 0;
-        return;
-    }
+    *State = 0;
 }
 
 _Bool* ReadPattern(const _Bool* Line, const size_t PointInLine, const int SequenceLength) {
@@ -278,7 +275,7 @@ void ModifyList(const Position Position, Game* Game, const int SequenceLength, c
     }
 }
 
-GameConclude Simulate(const Position Copy, const _Bool* Sequence) {
+GameConclude Simulate(const Position Copy, const _Bool* Sequence, const _Bool WeStart) {
     const int SequenceLength = (int) sizeof(*Sequence) / sizeof(_Bool);
 
     // Get the simulation
@@ -309,13 +306,25 @@ GameConclude Simulate(const Position Copy, const _Bool* Sequence) {
     // Calls off the function (finish later)
     Release(Element.Home.Line, &Element.Player1, &Element.Player2);
 
-    return (GameConclude) { 0 }; // Template return
+    GameConclude Conclusion = { 0 };
+
+    Conclusion = GameEnding(Element.Player1, Element.Player2, Element.Player1Settings, Element.Player2Settings, WeStart);
+
+    return Conclusion; // Template return
 }
 
-char GameBot(const signed char Level, const _Bool* CurrentPlay) {
+char GameBot(const signed char Level, const _Bool* CurrentPlay, BotMemory* Memory) {
     // Response, Level is -3 to 3
 
-    return 'X';
+    if (Level == 0) {
+        return 'X';
+    }
+    if (Level == 1) {
+        SwapState(&Memory->DoO);
+
+        if (Memory->DoO == 1) return 'O';
+        return 'X';
+    }
 }
 
 GameResult MetOccurrence(const Game Game, const int AppearanceRequirement) {
@@ -335,7 +344,7 @@ GameResult MetOccurrence(const Game Game, const int AppearanceRequirement) {
     return (GameResult) { 0 }; // Return the results
 }
 
-GameConclude GameEnding(const Game Player1, const Game Player2, const Settings Player1Settings, const Settings Player2Settings, const _Bool WeStart) {
+GameConclude GameEnding(const Game Player1, const Game Player2, const Settings Player1Settings, const Settings Player2Settings, const _Bool AssumeStart) {
     GameConclude Conclusion = { 0 };
 
     const GameResult Player1Won = MetOccurrence(Player1, Player1Settings.Repeats);
@@ -343,7 +352,9 @@ GameConclude GameEnding(const Game Player1, const Game Player2, const Settings P
 
     if (Player1Won.End || Player2Won.End) Conclusion.End = 1;
     if (Player1Won.End && Player2Won.End) Conclusion.Drew = 1;
-    if (Player2Won.End != WeStart && Player1Won.End != Player2Won.End) Conclusion.WeWon = 1;
+
+    // Idea: (Player2Won.End != AssumeStart && !Starter || Player1Won.End != AssumeStart && Starter)
+    if (Player2Won.End != AssumeStart && Player1Won.End != Player2Won.End) Conclusion.WeWon = 1;
 
     Conclusion.Player1Pattern = Player1Won.Pattern;
     Conclusion.Player2Pattern = Player2Won.Pattern;
@@ -351,11 +362,11 @@ GameConclude GameEnding(const Game Player1, const Game Player2, const Settings P
     return Conclusion;
 }
 
-void OutputResult(const GameConclude Result, const Settings Player1Settings, const Settings Player2Settings, const _Bool StartingPlayer, const _Bool Player) {
-    if (Result.End != 1) return;
-
+void OutputResult(const Position Position, const GameConclude Result, const Settings Player1Settings, const Settings Player2Settings, const _Bool StartingPlayer, const _Bool Player) {
     const char PlayerNumeration = TwoWayConversion(Player, '1', 1, '2', 0);
     const char PlayerFinisherNumeration = TwoWayConversion(StartingPlayer, '1', 1, '2', 0);
+
+    printf("\nThe Game has Concluded!\n");
 
     if (Result.Drew) {
         if (StartingPlayer != Player) printf("They");
@@ -380,7 +391,7 @@ void OutputResult(const GameConclude Result, const Settings Player1Settings, con
 
         printf(" with ");
 
-        const _Bool Outcome = (Result.WeWon == 1 && StartingPlayer == 0) || (Result.WeWon == 0 && StartingPlayer == 1);
+        const _Bool Outcome = (Result.WeWon == 1 && Player == 0) || (Result.WeWon == 0 && Player == 1);
 
         if (Outcome == 1) PrintPattern(Result.Player2Pattern, Player2Settings.Length);
         if (Outcome == 0) PrintPattern(Result.Player1Pattern, Player1Settings.Length);
@@ -389,4 +400,8 @@ void OutputResult(const GameConclude Result, const Settings Player1Settings, con
         printf("%c", PlayerFinisherNumeration);
         printf("!");
     }
+
+    printf("\nEnd Sequence: \n    ");
+    PrintLine(Position);
+    printf("\n");
 }
