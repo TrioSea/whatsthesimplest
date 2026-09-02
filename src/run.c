@@ -135,6 +135,9 @@ void PrintLine(const Position Position) {
 }
 
 IO HandleInput(const _Bool StartingPlayer, const Position Position, const char Disregard, const char Override) {
+    const size_t Check = 1;
+    char* Filter = malloc(Check);
+
     char Input = Disregard;
 
     if (Input == 0 && Override == 0) {
@@ -145,8 +148,10 @@ IO HandleInput(const _Bool StartingPlayer, const Position Position, const char D
         // reiterate the line to the player
         PrintLine(Position);
 
-        Input = (char) getchar();
-        getchar(); // trashes grabs the new line when returning
+        memset(Filter, 0, Check);
+        scanf("%s", Filter);
+
+        Input = Filter[0];
     }
 
     if (Override != 0) Input = Override;
@@ -157,12 +162,6 @@ IO HandleInput(const _Bool StartingPlayer, const Position Position, const char D
     if (Input == 'o') Input = 'O';
     if (Input == 'e') Input = 'E';
     if (Input == 'a') Input = 'A';
-
-    if (Input != 'X' && Input != 'O' && Input != 'E' && Input != 'A') {
-        printf("No option is case sensitive. Please pick either X or an O. You can resign the game with an E. Ask for a draw with an A.\n");
-
-        Out = HandleInput(StartingPlayer, Position, 0, 0);
-    }
 
     if (Input == 'X' || Input == 'O') {
         Out.Play = (_Bool) TwoWayConversion(Input, 'X', 1, 'O', 0);
@@ -179,13 +178,17 @@ IO HandleInput(const _Bool StartingPlayer, const Position Position, const char D
     if (Input == 'A') {
         printf("What would you like to respond with regarding the possibility of declination? (X O A E) ");
 
-        const char Disregards = (char) getchar();
-        getchar();
+        memset(Filter, 0, Check);
+        scanf("%s", Filter);
+
+        const char Disregards = Filter[0];
 
         printf("Player %c, would you like to accept a draw? (A D) ", OtherPlayerNumeration);
 
-        char AcceptanceInput = (char) getchar();
-        getchar();
+        memset(Filter, 0, Check);
+        scanf("%s", Filter);
+
+        char AcceptanceInput = Filter[0];
 
         if (AcceptanceInput == 'a') AcceptanceInput = 'A';
         if (AcceptanceInput == 'd') AcceptanceInput = 'D';
@@ -199,9 +202,21 @@ IO HandleInput(const _Bool StartingPlayer, const Position Position, const char D
         if (AcceptanceInput == 'D') {
             printf("Player %c declined a draw offer!\n", OtherPlayerNumeration);
 
+            free(Filter);
+
             Out = HandleInput(StartingPlayer, Position, Disregards, 0);
         }
     }
+
+    if (Input != 'X' && Input != 'O' && Input != 'E' && Input != 'A') {
+        printf("No option is case sensitive. Please pick either X or an O. You can resign the game with an E. Ask for a draw with an A.\n");
+
+        free(Filter);
+
+        Out = HandleInput(StartingPlayer, Position, 0, 0);
+    }
+
+    Filter = NULL;
 
     return Out;
 }
@@ -327,7 +342,7 @@ char GameBot(const signed char Level, Position Position) {
         return 'X';
     }
     if (Level == 1) {
-        if (Position.Line[Position.Path.Count - 2] != 0) return 'O';
+        if (Position.Line[Position.Path.Count - 2 * 1] != 0 && Position.Line[Position.Path.Count - 2 * 2] != 0) return 'O';
         return 'X';
     }
 }
@@ -371,13 +386,13 @@ void OutputResult(const Position Position, const GameConclude Result, const Sett
     const char PlayerNumeration = TwoWayConversion(Player, '1', 1, '2', 0);
     const char PlayerFinisherNumeration = TwoWayConversion(StartingPlayer, '1', 1, '2', 0);
 
-    printf("\nThe Game has Concluded!\n");
+    printf("\nGame Conclusion: ");
 
     if (Result.Drew) {
         if (StartingPlayer != Player) printf("They");
         if (StartingPlayer == Player) printf("We");
 
-        printf(" Drew the Game! (Player ");
+        printf(" Drew! (Player ");
         printf("%c", PlayerFinisherNumeration);
         printf(")");
 
