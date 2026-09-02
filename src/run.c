@@ -275,6 +275,13 @@ void ModifyList(const Position Position, Game* Game, const int SequenceLength, c
     }
 }
 
+void UpdateGame(Set* Element, const _Bool Play) {
+    AddSpot(&(*Element).Home, Play);
+
+    QuickAdd(&(*Element).Player1, (*Element).Home, (*Element).Player1Settings.Length);
+    QuickAdd(&(*Element).Player2, (*Element).Home, (*Element).Player2Settings.Length);
+}
+
 GameConclude Simulate(const Position Copy, const _Bool* Sequence, const _Bool WeStart) {
     const int SequenceLength = (int) sizeof(*Sequence) / sizeof(_Bool);
 
@@ -313,16 +320,14 @@ GameConclude Simulate(const Position Copy, const _Bool* Sequence, const _Bool We
     return Conclusion; // Template return
 }
 
-char GameBot(const signed char Level, const _Bool* CurrentPlay, BotMemory* Memory) {
+char GameBot(const signed char Level, Position Position) {
     // Response, Level is -3 to 3
 
     if (Level == 0) {
         return 'X';
     }
     if (Level == 1) {
-        SwapState(&Memory->DoO);
-
-        if (Memory->DoO == 1) return 'O';
+        if (Position.Line[Position.Path.Count - 2] != 0) return 'O';
         return 'X';
     }
 }
