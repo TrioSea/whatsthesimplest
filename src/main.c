@@ -4,7 +4,6 @@ int main() {
     Set Element = Hold();
 
     _Bool ClientPlayingStarter = 0;
-    signed char EngineLevel = 0;
 
     printf("Begin Play\n");
 
@@ -15,11 +14,11 @@ int main() {
         char Override = 0;
 
         if (ClientPlayingStarter != Element.Full) {
-            const char Potential = GameBot(EngineLevel, Element.Home);
+            const char Potential = GameBot(Element.Home, 1, 0);
             Override = Potential;
         }
 
-        const IO Action = HandleInput(Element.Full, Element.Home, 0, Override);
+        const IO Action = HandleInput(Element.Full, ClientPlayingStarter, Element.Home, 0, Override);
 
         if (Action.Return != 1) {
             UpdateGame(&Element, Action.Play);
@@ -27,14 +26,21 @@ int main() {
             // Game check
             const GameConclude Result = GameEnding(Element.Player1, Element.Player2, Element.Player1Settings, Element.Player2Settings, ClientPlayingStarter);
 
-            if (Result.End == 1) {
-                OutputResult(Element.Home, Result, Element.Player1Settings, Element.Player2Settings, Element.Full, ClientPlayingStarter);
-                quit = 1;
-            }
-        } else quit = 1;
+            if (Result.End != 1) {
+                // Continue
+                SwapState(&Element.Full);
 
-        // Continue
-        SwapState(&Element.Full);
+                continue;
+            }
+
+            OutputResult(Element.Home, Result, Element.Player1Settings, Element.Player2Settings, Element.Full, ClientPlayingStarter);
+        }
+
+        printf("\nEnd Sequence: \n    ");
+        PrintLine(Element.Home);
+        printf("\n");
+
+        quit = 1;
     }
 
     Release(Element.Home.Line, &Element.Player1, &Element.Player2);

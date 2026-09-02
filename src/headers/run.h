@@ -32,6 +32,7 @@ typedef struct {
 typedef struct {
     _Bool* Line;
     SizeTracker Path;
+    signed char BotLevel;
 } Position;
 
 typedef struct {
@@ -65,7 +66,7 @@ _Bool EqualPatterns(const _Bool* PatternA, const _Bool* PatternB, int SequenceLe
 
 
 void PrintLine(Position Position);
-IO HandleInput(_Bool StartingPlayer, Position Position, char Disregard, char Override);
+IO HandleInput(_Bool StartingPlayer, _Bool Player, Position Position, char Disregard, char Override);
 
 void InsertOccurrence(Game* Game, _Bool* Pattern, int SequenceLength);
 void AddSpot(Position *Position, _Bool ADD);
@@ -74,7 +75,7 @@ void QuickAdd(Game* Game, Position Position, int SequenceLength);
 void ModifyList(Position Position, Game* Game, int SequenceLength, size_t EndAt);
 void UpdateGame(Set* Element, _Bool Play);
 GameConclude Simulate(Position Copy, const _Bool* Sequence, _Bool WeStart);
-char GameBot(signed char Level, Position Position);
+char GameBot(Position Position, _Bool Playing, _Bool DrawExhausted);
 
 GameResult MetOccurrence(Game Game, int AppearanceRequirement);
 GameConclude GameEnding(Game Player1, Game Player2, Settings Player1Settings, Settings Player2Settings, _Bool AssumeStart);

@@ -21,7 +21,8 @@ Set Hold() {
         .Full = 1,
         .Home = (Position) {
             .Line = calloc(0, sizeof(_Bool)),
-            .Path = (SizeTracker) { 0 }
+            .Path = (SizeTracker) { 0 },
+            .BotLevel = 0
         },
     };
 
@@ -134,7 +135,7 @@ void PrintLine(const Position Position) {
     }
 }
 
-IO HandleInput(const _Bool StartingPlayer, const Position Position, const char Disregard, const char Override) {
+IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Position, const char Disregard, const char Override) {
     const size_t Check = 1;
     char* Filter = malloc(Check);
 
@@ -170,23 +171,31 @@ IO HandleInput(const _Bool StartingPlayer, const Position Position, const char D
     const char OtherPlayerNumeration = TwoWayConversion(StartingPlayer, '2', 1, '1', 0);
 
     if (Input == 'E') {
-        printf("Player %c has Won to resignation!\n", OtherPlayerNumeration);
+        printf("Game Conclusion: Player %c has Won to resignation!\n", OtherPlayerNumeration);
 
         Out.Return = 1;
     }
 
     if (Input == 'A') {
-        printf("What would you like to respond with regarding the possibility of declination? (X O A E) ");
+        if (Player == StartingPlayer) {
+            printf("What would you like to respond with regarding the possibility of declination? (X O A E) ");
 
-        memset(Filter, 0, Check);
-        scanf("%s", Filter);
+            memset(Filter, 0, Check);
+            scanf("%s", Filter);
+        } else {
+            Filter[0] = GameBot(Position, 1, 1);
+        }
 
         const char Disregards = Filter[0];
 
-        printf("Player %c, would you like to accept a draw? (A D) ", OtherPlayerNumeration);
+        if (Player == StartingPlayer) {
+            Filter[0] = GameBot(Position, 0, 0);
+        } else {
+            printf("Player %c, would you like to accept a draw? (A D) ", OtherPlayerNumeration);
 
-        memset(Filter, 0, Check);
-        scanf("%s", Filter);
+            memset(Filter, 0, Check);
+            scanf("%s", Filter);
+        }
 
         char AcceptanceInput = Filter[0];
 
@@ -194,7 +203,7 @@ IO HandleInput(const _Bool StartingPlayer, const Position Position, const char D
         if (AcceptanceInput == 'd') AcceptanceInput = 'D';
 
         if (AcceptanceInput == 'A') {
-            printf("Player %c accepted a draw offer. The game ends in a tie!\n", OtherPlayerNumeration);
+            printf("\nGame Conclusion: Player %c accepted a draw offer. The game ends in a tie!", OtherPlayerNumeration);
 
             Out.Return = 1;
         }
@@ -204,7 +213,7 @@ IO HandleInput(const _Bool StartingPlayer, const Position Position, const char D
 
             free(Filter);
 
-            Out = HandleInput(StartingPlayer, Position, Disregards, 0);
+            Out = HandleInput(StartingPlayer, Player, Position, Disregards, 0);
         }
     }
 
@@ -213,7 +222,7 @@ IO HandleInput(const _Bool StartingPlayer, const Position Position, const char D
 
         free(Filter);
 
-        Out = HandleInput(StartingPlayer, Position, 0, 0);
+        Out = HandleInput(StartingPlayer, Player, Position, 0, 0);
     }
 
     Filter = NULL;
@@ -335,16 +344,19 @@ GameConclude Simulate(const Position Copy, const _Bool* Sequence, const _Bool We
     return Conclusion; // Template return
 }
 
-char GameBot(const signed char Level, Position Position) {
-    // Response, Level is -3 to 3
-
-    if (Level == 0) {
-        return 'X';
+char GameBot(Position Position, const _Bool Playing, const _Bool DrawExhausted) {
+    if (Position.BotLevel == 0) {
+        if (Playing) return 'X';
+        return 'A';
     }
-    if (Level == 1) {
-        if (Position.Line[Position.Path.Count - 2 * 1] != 0 && Position.Line[Position.Path.Count - 2 * 2] != 0) return 'O';
-        return 'X';
+    if (Position.BotLevel == 1) {
+        if (Playing) {
+            if (Position.Line[Position.Path.Count - 2 * 1] != 0 && Position.Line[Position.Path.Count - 2 * 2] != 0) return 'O';
+            return 'X';
+        }
+        return 'D';
     }
+    return 'E';
 }
 
 GameResult MetOccurrence(const Game Game, const int AppearanceRequirement) {
@@ -420,8 +432,4 @@ void OutputResult(const Position Position, const GameConclude Result, const Sett
         printf("%c", PlayerFinisherNumeration);
         printf("!");
     }
-
-    printf("\nEnd Sequence: \n    ");
-    PrintLine(Position);
-    printf("\n");
 }
