@@ -75,7 +75,7 @@ void QuickAdd(Game* Game, Position Position, int SequenceLength);
 void ModifyList(Position Position, Game* Game, int SequenceLength, size_t EndAt);
 void UpdateGame(Set* Element, _Bool Play);
 GameConclude Simulate(Position Copy, const _Bool* Sequence, _Bool WeStart);
-char GameBot(Position Position, _Bool Playing, _Bool DrawExhausted);
+char GameBot(Position Position, _Bool ConsiderDraw, _Bool DrawExhausted);
 
 GameResult MetOccurrence(Game Game, int AppearanceRequirement);
 GameConclude GameEnding(Game Player1, Game Player2, Settings Player1Settings, Settings Player2Settings, _Bool AssumeStart);

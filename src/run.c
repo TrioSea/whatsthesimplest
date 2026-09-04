@@ -344,19 +344,38 @@ GameConclude Simulate(const Position Copy, const _Bool* Sequence, const _Bool We
     return Conclusion; // Template return
 }
 
-char GameBot(Position Position, const _Bool Playing, const _Bool DrawExhausted) {
+char GameBot(Position Position, const _Bool ConsiderDraw, const _Bool DrawExhausted) {
+    if (Position.BotLevel == -3) {
+        return 'E';
+    }
+    if (Position.BotLevel == -2) {
+        if (DrawExhausted) {
+
+        }
+    }
+    if (Position.BotLevel == -1) {
+
+    }
     if (Position.BotLevel == 0) {
-        if (Playing) return 'X';
+        if (!ConsiderDraw) return 'X';
         return 'A';
     }
     if (Position.BotLevel == 1) {
-        if (Playing) {
-            if (Position.Line[Position.Path.Count - 2 * 1] != 0 && Position.Line[Position.Path.Count - 2 * 2] != 0) return 'O';
+        if (!ConsiderDraw) {
+            if (Position.Line[Position.Path.Count - 2] != 0) return 'O';
             return 'X';
         }
         return 'D';
     }
-    return 'E';
+    if (Position.BotLevel == 2) {
+
+    }
+    if (Position.BotLevel == 3) {
+
+    }
+
+    printf("Invalid Bot Parameters");
+    return 0;
 }
 
 GameResult MetOccurrence(const Game Game, const int AppearanceRequirement) {
