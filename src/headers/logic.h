@@ -3,6 +3,9 @@
 
 // handle with _Bool and say == 1 or == 0 for true/false checks
 
+#include "strings.h"
+#include "mymath.h"
+
 extern _Bool Invert(_Bool N);
 
 extern _Bool Inequality(const _Bool* X, _Bool Check);

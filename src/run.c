@@ -141,7 +141,7 @@ IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Set Pose, c
 
     char Input = Disregard;
 
-    if (Input == 0 && Override == 0) {
+    if (AND(Input == 0, Override == 0)) {
         // print out to the player for input
         const char PlayerNumeration = TwoWayConversion(StartingPlayer, '1', 1, '2', 0);
         printf("Player %c; ", PlayerNumeration);
@@ -164,7 +164,7 @@ IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Set Pose, c
     if (Input == 'e') Input = 'E';
     if (Input == 'a') Input = 'A';
 
-    if (Input == 'X' || Input == 'O') {
+    if (InvertedAND(Input != 'X', Input != 'O')) {
         Out.Play = (_Bool) TwoWayConversion(Input, 'X', 1, 'O', 0);
     }
 
@@ -217,7 +217,7 @@ IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Set Pose, c
         }
     }
 
-    if (Input != 'X' && Input != 'O' && Input != 'E' && Input != 'A') {
+    if (AND(AND(AND(Input != 'X', Input != 'O'), Input != 'E'), Input != 'A')) {
         printf("No option is case sensitive. Please pick either X or an O. You can resign the game with an E. Ask for a draw with an A.\n");
 
         free(Filter);
@@ -347,6 +347,7 @@ void Out(Branch*** UC, const int SupposedID, const _Bool WeStart, const int Dept
 }
 
 int Initiate(Branch** UC, int ID, int ADD, const Set Pose, const _Bool WeStart, int Depth) {
+    /*
     Add(UC, ID, ADD);
     UC = &UC[ID]->Options;
 
@@ -369,8 +370,9 @@ int Initiate(Branch** UC, int ID, int ADD, const Set Pose, const _Bool WeStart, 
         Depth++;
         Initiate(UC, ID, ADD, Pose, WeStart, Depth);
     }
+    */
 
-    return 0;
+    return 1;
 }
 
 void Pass(Branch** Operational, int* ON) {
@@ -396,7 +398,7 @@ void Pass(Branch** Operational, int* ON) {
 
 void Sweep(Branch** Operational, int* ON) {
     *Operational = &(*Operational)->Options[*ON];
-    if ((*Operational)->Options == NULL && *ON < 4) { // we can catch all because thats how we build our functions
+    if (AND((*Operational)->Options == NULL, *ON < 4)) { // we can catch all because thats how we build our functions
         *ON = 1;
         Pass(Operational, ON);
     } else {
@@ -411,7 +413,7 @@ void Sweep(Branch** Operational, int* ON) {
 }
 
 void ModifyList(const Position Position, Game* Game, const int SequenceLength, const size_t EndAt) {
-    if (EndAt < Position.Path.Count || EndAt < SequenceLength) return;
+    if (InclusiveOR(EndAt < Position.Path.Count, EndAt < SequenceLength)) return;
 
     // Set the looping value as a back to front to decrement
     int Back = (int) EndAt - (SequenceLength - 1);
@@ -499,7 +501,8 @@ char GameBot(Set Pose, const _Bool ConsiderDraw, const _Bool DrawExhausted) {
 
     }
     if (Pose.Home.BotLevel == 3) {
-        const _Bool WeStart = (double) Pose.Home.Path.Count / 2 == floor((double) Pose.Home.Path.Count / 2);
+        const double h = (double) Pose.Home.Path.Count / 2;
+        const _Bool WeStart = h == floor(h);
 
         Branch* Class = malloc(sizeof(Branch));
 
@@ -540,7 +543,9 @@ char GameBot(Set Pose, const _Bool ConsiderDraw, const _Bool DrawExhausted) {
             .Numeral = 4
         };
 
-        const char Given = Convert((char) BestMove, Bindings, Bounded);
+        char Given = 'E';
+
+        Given = Convert((char) BestMove, Bindings, Bounded);
         free(Bounded);
 
         return Given;
@@ -573,11 +578,11 @@ GameConclude GameEnding(const Game Player1, const Game Player2, const Settings P
     const GameResult Player1Won = MetOccurrence(Player1, Player1Settings.Repeats);
     const GameResult Player2Won = MetOccurrence(Player2, Player2Settings.Repeats);
 
-    if (Player1Won.End || Player2Won.End) Conclusion.End = 1;
-    if (Player1Won.End && Player2Won.End) Conclusion.Drew = 1;
+    if (InclusiveOR(Player1Won.End, Player2Won.End)) Conclusion.End = 1;
+    if (AND(Player1Won.End, Player2Won.End)) Conclusion.Drew = 1;
 
-    // Idea: (Player2Won.End != AssumeStart && !Starter || Player1Won.End != AssumeStart && Starter)
-    if (Player2Won.End != AssumeStart && Player1Won.End != Player2Won.End) Conclusion.WeWon = 1;
+    // Idea: (InclusiveOR(ADD(Player2Won.End != AssumeStart, !Starter), AND(Player1Won.End != AssumeStart, Starter)))
+    if (AND(Player2Won.End != AssumeStart, Player1Won.End != Player2Won.End)) Conclusion.WeWon = 1;
 
     Conclusion.Player1Pattern = Player1Won.Pattern;
     Conclusion.Player2Pattern = Player2Won.Pattern;
@@ -585,7 +590,7 @@ GameConclude GameEnding(const Game Player1, const Game Player2, const Settings P
     return Conclusion;
 }
 
-void OutputResult(const Position Position, const GameConclude Result, const Settings Player1Settings, const Settings Player2Settings, const _Bool StartingPlayer, const _Bool Player) {
+void OutputResult(const GameConclude Result, const Settings Player1Settings, const Settings Player2Settings, const _Bool StartingPlayer, const _Bool Player) {
     const char PlayerNumeration = TwoWayConversion(Player, '1', 1, '2', 0);
     const char PlayerFinisherNumeration = TwoWayConversion(StartingPlayer, '1', 1, '2', 0);
 
@@ -614,7 +619,7 @@ void OutputResult(const Position Position, const GameConclude Result, const Sett
 
         printf(" with ");
 
-        const _Bool Outcome = (Result.WeWon == 1 && Player == 0) || (Result.WeWon == 0 && Player == 1);
+        const _Bool Outcome = ExclusiveOR(Result.WeWon, Player);
 
         if (Outcome == 1) PrintPattern(Result.Player2Pattern, Player2Settings.Length);
         if (Outcome == 0) PrintPattern(Result.Player1Pattern, Player1Settings.Length);

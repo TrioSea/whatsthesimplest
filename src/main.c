@@ -34,7 +34,7 @@ int main() {
                 continue;
             }
 
-            OutputResult(Element.Home, Result, Element.Player1Settings, Element.Player2Settings, Element.Full, ClientPlayingStarter);
+            OutputResult(Result, Element.Player1Settings, Element.Player2Settings, Element.Full, ClientPlayingStarter);
         }
 
         printf("\nEnd Sequence: \n    ");

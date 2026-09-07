@@ -1,7 +1,6 @@
 #ifndef WITSPG_MAIN_H
 #define WITSPG_MAIN_H
 
-#include "strings.h"
 #include "logic.h"
 #include "conversions.h"
 
@@ -109,6 +108,6 @@ GameConclude Simulate(Position Copy, const _Bool* Sequence, _Bool WeStart);
 char GameBot(Set Pose, _Bool ConsiderDraw, _Bool DrawExhausted);
 
 GameResult MetOccurrence(Game Game, int AppearanceRequirement);
-void OutputResult(Position Position, GameConclude Result, Settings Player1Settings, Settings Player2Settings, _Bool StartingPlayer, _Bool Player);
+void OutputResult(GameConclude Result, Settings Player1Settings, Settings Player2Settings, _Bool StartingPlayer, _Bool Player);
 
 #endif // WITSPG_MAIN_H

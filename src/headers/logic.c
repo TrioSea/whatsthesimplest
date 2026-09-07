@@ -1,5 +1,4 @@
 #include "logic.h"
-#include "mymath.h"
 
 _Bool Inequality(const _Bool* X, const _Bool Check) {
     if (*X != Check) return 1; // Invert your check parameter for an equality, 1 is meant to be to run a function inside an if
@@ -16,13 +15,16 @@ _Bool Invert(const _Bool N) {
 }
 
 _Bool InvertedAND(const _Bool A, const _Bool B) {
-    _Bool* Through = 0;
+    _Bool* Through = malloc(sizeof(_Bool));
 
     *Through = Invert(A);
     if (*Through) return *Through;
 
     *Through = Invert(B);
     if (*Through) return *Through;
+
+    free(Through);
+    Through = NULL;
 
     return Invert(1);
 
