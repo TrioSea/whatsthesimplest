@@ -3,7 +3,8 @@
 int main() {
     Set Element = Hold();
 
-    _Bool ClientPlayingStarter = 0;
+    Element.Home.BotLevel = 3;
+    _Bool ClientPlayingStarter = 1;
 
     printf("Begin Play\n");
 

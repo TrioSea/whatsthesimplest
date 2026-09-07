@@ -171,7 +171,7 @@ IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Po
     const char OtherPlayerNumeration = TwoWayConversion(StartingPlayer, '2', 1, '1', 0);
 
     if (Input == 'E') {
-        printf("Game Conclusion: Player %c has Won to resignation!\n", OtherPlayerNumeration);
+        printf("\nGame Conclusion: Player %c has Won to resignation!", OtherPlayerNumeration);
 
         Out.Return = 1;
     }
@@ -282,6 +282,21 @@ void QuickAdd(Game* Game, const Position Position, const int SequenceLength) {
     InsertOccurrence(Game, Pattern, SequenceLength);
 }
 
+void Add(Branch** Class, const int SupposedID, const int ADD) {
+    if (Class[SupposedID]->FullStack == 1) {
+        Class[SupposedID]->Options = malloc(2 * sizeof(Branch));
+    }
+
+    Class[SupposedID]->Options[ADD] = (Branch) {
+        .ID = ADD,
+        .ParentID = Class[SupposedID]->ID,
+        .ParentParentCommons = *Class,
+        .Options = NULL
+    };
+
+    Class[SupposedID]->FullStack++;
+}
+
 void ModifyList(const Position Position, Game* Game, const int SequenceLength, const size_t EndAt) {
     if (EndAt < Position.Path.Count || EndAt < SequenceLength) return;
 
@@ -371,7 +386,51 @@ char GameBot(Position Position, const _Bool ConsiderDraw, const _Bool DrawExhaus
 
     }
     if (Position.BotLevel == 3) {
+        const _Bool WeStart = (double) Position.Path.Count / 2 == floor((double) Position.Path.Count / 2);
 
+        Branch* Class = malloc(sizeof(Branch));
+
+        Class[0] = (Branch) {
+            .ID = 0,
+            .ParentID = 0,
+            .ParentParentCommons = Class,
+            .Options = NULL
+        };
+
+        const int BestMove = Initiate(&Class, 0, 1, Position, WeStart, 0);
+
+        Branch* Operational = &Class[0];
+        int ON = 0;
+
+        Pass(&Operational, &ON);
+
+        const int Bindings = 4;
+        Bind* Bounded = calloc(Bindings, sizeof(Bind));
+
+        Bounded[0] = (Bind) {
+            .Character = 'X',
+            .Numeral = 1
+        };
+
+        Bounded[1] = (Bind) {
+            .Character = 'O',
+            .Numeral = 2
+        };
+
+        Bounded[2] = (Bind) {
+            .Character = 'A',
+            .Numeral = 3
+        };
+
+        Bounded[3] = (Bind) {
+            .Character = 'E',
+            .Numeral = 4
+        };
+
+        const char Given = Convert((char) BestMove, Bindings, Bounded);
+        free(Bounded);
+
+        return Given;
     }
 
     printf("Invalid Bot Parameters");
