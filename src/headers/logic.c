@@ -1,5 +1,5 @@
-#include "calculator.h"
-// #include "mymath.h"
+#include "logic.h"
+#include "mymath.h"
 
 _Bool Inequality(const _Bool* X, const _Bool Check) {
     if (*X != Check) return 1; // Invert your check parameter for an equality, 1 is meant to be to run a function inside an if

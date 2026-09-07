@@ -135,7 +135,7 @@ void PrintLine(const Position Position) {
     }
 }
 
-IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Position, const char Disregard, const char Override) {
+IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Set Pose, const char Disregard, const char Override) {
     const size_t Check = 1;
     char* Filter = malloc(Check);
 
@@ -147,7 +147,7 @@ IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Po
         printf("Player %c; ", PlayerNumeration);
 
         // reiterate the line to the player
-        PrintLine(Position);
+        PrintLine(Pose.Home);
 
         memset(Filter, 0, Check);
         scanf("%s", Filter);
@@ -183,13 +183,13 @@ IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Po
             memset(Filter, 0, Check);
             scanf("%s", Filter);
         } else {
-            Filter[0] = GameBot(Position, 1, 1);
+            Filter[0] = GameBot(Pose, 1, 1);
         }
 
         const char Disregards = Filter[0];
 
         if (Player == StartingPlayer) {
-            Filter[0] = GameBot(Position, 0, 0);
+            Filter[0] = GameBot(Pose, 0, 0);
         } else {
             printf("Player %c, would you like to accept a draw? (A D) ", OtherPlayerNumeration);
 
@@ -213,7 +213,7 @@ IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Po
 
             free(Filter);
 
-            Out = HandleInput(StartingPlayer, Player, Position, Disregards, 0);
+            Out = HandleInput(StartingPlayer, Player, Pose, Disregards, 0);
         }
     }
 
@@ -222,7 +222,7 @@ IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Po
 
         free(Filter);
 
-        Out = HandleInput(StartingPlayer, Player, Position, 0, 0);
+        Out = HandleInput(StartingPlayer, Player, Pose, 0, 0);
     }
 
     Filter = NULL;

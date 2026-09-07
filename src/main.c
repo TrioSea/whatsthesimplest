@@ -19,7 +19,7 @@ int main() {
             Override = Potential;
         }
 
-        const IO Action = HandleInput(Element.Full, ClientPlayingStarter, Element.Home, 0, Override);
+        const IO Action = HandleInput(Element.Full, ClientPlayingStarter, Element, 0, Override);
 
         if (Action.Return != 1) {
             UpdateGame(&Element, Action.Play);

@@ -1,6 +1,10 @@
 #ifndef CHESS_MYMATH_H
 #define CHESS_MYMATH_H
 
+//vibe coded
+#include <sys/cdefs.h> // Provides standard GNU macros like __THROW
+#include <math.h>      // Standard math declarations
+
 extern double sqrt (double __x);
 extern double __sqrt (double __x);
 

@@ -15,3 +15,6 @@ target_sources(${PROJECT_NAME} PRIVATE
         run.c
         main.c
 )
+
+# vibe coded
+target_link_libraries(witspg PRIVATE m)
