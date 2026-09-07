@@ -2,6 +2,7 @@
 #define WITSPG_MAIN_H
 
 #include "strings.h"
+#include "logic.h"
 #include "conversions.h"
 
 typedef struct {
@@ -88,13 +89,16 @@ void InsertOccurrence(Game* Game, _Bool* Pattern, int SequenceLength);
 void AddSpot(Position *Position, _Bool ADD);
 void QuickAdd(Game* Game, Position Position, int SequenceLength);
 
+GameConclude GameEnding(Game Player1, Game Player2, Settings Player1Settings, Settings Player2Settings, _Bool AssumeStart);
 void Add(Branch** Class, int SupposedID, int ADD);
+
+#define RUN_BOT_OPTIONS 4
 
 int BestImmediateOption(Branch** UC, int ID);
 int AverageOption(Branch** UC, int ID);
 
 void Out(Branch*** UC, int SupposedID, _Bool WeStart, int Depth);
-int Initiate(Branch** UC, int ID, int Add, Position Position, _Bool WeStart, int Depth);
+int Initiate(Branch** UC, int ID, int ADD, Set Pose, _Bool WeStart, int Depth);
 
 void Pass(Branch** Operational, int* ON);
 void Sweep(Branch** Operational, int* ON);
@@ -102,10 +106,9 @@ void Sweep(Branch** Operational, int* ON);
 void ModifyList(Position Position, Game* Game, int SequenceLength, size_t EndAt);
 void UpdateGame(Set* Element, _Bool Play);
 GameConclude Simulate(Position Copy, const _Bool* Sequence, _Bool WeStart);
-char GameBot(Position Position, _Bool ConsiderDraw, _Bool DrawExhausted);
+char GameBot(Set Pose, _Bool ConsiderDraw, _Bool DrawExhausted);
 
 GameResult MetOccurrence(Game Game, int AppearanceRequirement);
-GameConclude GameEnding(Game Player1, Game Player2, Settings Player1Settings, Settings Player2Settings, _Bool AssumeStart);
 void OutputResult(Position Position, GameConclude Result, Settings Player1Settings, Settings Player2Settings, _Bool StartingPlayer, _Bool Player);
 
 #endif // WITSPG_MAIN_H

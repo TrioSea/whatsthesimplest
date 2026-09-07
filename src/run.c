@@ -297,6 +297,119 @@ void Add(Branch** Class, const int SupposedID, const int ADD) {
     Class[SupposedID]->FullStack++;
 }
 
+int BestImmediateOption(Branch** UC, const int ID) {
+    int Index = 1;
+
+    int CurrentEvaluation = 0;
+    int BestMove = 0;
+
+    while (Index < RUN_BOT_OPTIONS + 1) {
+        const int PotentialNewEvaluation = UC[ID]->Options[Index].Evaluation;
+
+        if (PotentialNewEvaluation >= CurrentEvaluation) {
+            CurrentEvaluation = PotentialNewEvaluation;
+            BestMove = Index;
+        }
+
+        Index++;
+    }
+
+    return BestMove;
+}
+
+int AverageOption(Branch** UC, const int ID) {
+    int Index = 1;
+
+    int CurrentEvaluation = 0;
+
+    while (Index < RUN_BOT_OPTIONS + 1) {
+        CurrentEvaluation += UC[ID]->Options[Index].Evaluation;
+
+        Index++;
+    }
+
+    return CurrentEvaluation / RUN_BOT_OPTIONS;
+}
+
+void Out(Branch*** UC, const int SupposedID, const _Bool WeStart, const int Depth) {
+    if ((*UC)[SupposedID]->ID < RUN_BOT_OPTIONS + 1) {
+        *UC = &(*UC)[SupposedID]->ParentParentCommons; // reason we have triple pointer
+        int Eval = 0;
+        const _Bool StarterMove = (double) Depth / 2 == floor((double) Depth / 2);
+        if (InvertedExclusiveOR(StarterMove, WeStart)) {
+            Eval = BestImmediateOption(*UC, SupposedID);
+        } else {
+            Eval = AverageOption(*UC, SupposedID);
+        }
+        (*UC)[SupposedID]->Evaluation = Eval;
+        Out(UC, SupposedID, WeStart, Depth);
+    }
+}
+
+int Initiate(Branch** UC, int ID, int ADD, const Set Pose, const _Bool WeStart, int Depth) {
+    Add(UC, ID, ADD);
+    UC = &UC[ID]->Options;
+
+    const GameConclude Occurence = GameEnding(Pose.Player1, Pose.Player2, Pose.Player1Settings, Pose.Player2Settings, WeStart);
+    if (Occurence.End) {
+        UC[ID]->Evaluation = InvertedExclusiveOR(Occurence.WeWon, WeStart);
+
+        Out(&UC, ID, WeStart, Depth);
+
+        if (UC[ID]->ID != 'B') {
+            UC = &UC[ID]->ParentParentCommons;
+            Depth--;
+            ADD++;
+            Initiate(UC, ID, ADD, Pose, WeStart, Depth);
+        } else {
+            return BestImmediateOption(UC, ID);
+        }
+    } else {
+        ADD = 1;
+        Depth++;
+        Initiate(UC, ID, ADD, Pose, WeStart, Depth);
+    }
+
+    return 0;
+}
+
+void Pass(Branch** Operational, int* ON) {
+    if (*ON < 4) {
+        if ((*Operational)->Options != NULL) {
+            *Operational = &(*Operational)->Options[*ON];
+            Sweep(Operational, ON);
+        } else {
+            *Operational = (*Operational)->ParentParentCommons[(*Operational)->ParentID].Options;
+
+            free(*Operational);
+            *Operational = NULL;
+        }
+    } else {
+        *ON = (*Operational)->ParentID;
+
+        (*ON)++;
+        *Operational = &(*Operational)->ParentParentCommons[*ON];
+
+        Pass(Operational, ON);
+    }
+}
+
+void Sweep(Branch** Operational, int* ON) {
+    *Operational = &(*Operational)->Options[*ON];
+    if ((*Operational)->Options == NULL && *ON < 4) { // we can catch all because thats how we build our functions
+        *ON = 1;
+        Pass(Operational, ON);
+    } else {
+        // slide over
+
+        *Operational = &(*Operational)->ParentParentCommons[(*Operational)->ParentID];
+
+        (*ON)++;
+        *Operational = &(*Operational)->Options[*ON];
+        Sweep(Operational, ON);
+    }
+}
+
 void ModifyList(const Position Position, Game* Game, const int SequenceLength, const size_t EndAt) {
     if (EndAt < Position.Path.Count || EndAt < SequenceLength) return;
 
@@ -359,34 +472,34 @@ GameConclude Simulate(const Position Copy, const _Bool* Sequence, const _Bool We
     return Conclusion; // Template return
 }
 
-char GameBot(Position Position, const _Bool ConsiderDraw, const _Bool DrawExhausted) {
-    if (Position.BotLevel == -3) {
+char GameBot(Set Pose, const _Bool ConsiderDraw, const _Bool DrawExhausted) {
+    if (Pose.Home.BotLevel == -3) {
         return 'E';
     }
-    if (Position.BotLevel == -2) {
+    if (Pose.Home.BotLevel == -2) {
         if (DrawExhausted) {
 
         }
     }
-    if (Position.BotLevel == -1) {
+    if (Pose.Home.BotLevel == -1) {
 
     }
-    if (Position.BotLevel == 0) {
+    if (Pose.Home.BotLevel == 0) {
         if (!ConsiderDraw) return 'X';
         return 'A';
     }
-    if (Position.BotLevel == 1) {
+    if (Pose.Home.BotLevel == 1) {
         if (!ConsiderDraw) {
-            if (Position.Line[Position.Path.Count - 2] != 0) return 'O';
+            if (Pose.Home.Line[Pose.Home.Path.Count - 2] != 0) return 'O';
             return 'X';
         }
         return 'D';
     }
-    if (Position.BotLevel == 2) {
+    if (Pose.Home.BotLevel == 2) {
 
     }
-    if (Position.BotLevel == 3) {
-        const _Bool WeStart = (double) Position.Path.Count / 2 == floor((double) Position.Path.Count / 2);
+    if (Pose.Home.BotLevel == 3) {
+        const _Bool WeStart = (double) Pose.Home.Path.Count / 2 == floor((double) Pose.Home.Path.Count / 2);
 
         Branch* Class = malloc(sizeof(Branch));
 
@@ -397,7 +510,7 @@ char GameBot(Position Position, const _Bool ConsiderDraw, const _Bool DrawExhaus
             .Options = NULL
         };
 
-        const int BestMove = Initiate(&Class, 0, 1, Position, WeStart, 0);
+        const int BestMove = Initiate(&Class, 0, 1, Pose, WeStart, 0);
 
         Branch* Operational = &Class[0];
         int ON = 0;

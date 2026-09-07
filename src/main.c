@@ -15,7 +15,7 @@ int main() {
         char Override = 0;
 
         if (ClientPlayingStarter != Element.Full) {
-            const char Potential = GameBot(Element.Home, 1, 0);
+            const char Potential = GameBot(Element, 1, 0);
             Override = Potential;
         }
 

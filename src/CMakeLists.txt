@@ -2,11 +2,11 @@ add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PRIVATE
         headers/mymath.h
 
-        headers/logic.h
-        headers/logic.c
-
         headers/strings.h
         headers/strings.c
+
+        headers/logic.h
+        headers/logic.c
 
         headers/conversions.h
         headers/conversions.c
