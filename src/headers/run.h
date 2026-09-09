@@ -30,9 +30,10 @@ typedef struct {
 } Settings;
 
 typedef struct {
-    _Bool* Line;
     SizeTracker Path;
-    signed char BotLevel;
+    _Bool* Line;
+
+    int BotLevel;
 } Position;
 
 typedef struct {
@@ -46,29 +47,30 @@ typedef struct {
 } Game;
 
 typedef struct {
+    Position Home;
+
     Game Player1;
     Game Player2;
     Settings Player1Settings;
     Settings Player2Settings;
-    _Bool Full;
-    Position Home;
+
     int ErrorCode;
+
+    _Bool Full;
 } Set;
 
 typedef struct Branch Branch;
 
 typedef struct Branch {
-// Self
-    int Evaluation;
-
-    int ID;
-
-// Family
-    int ParentID;
     Branch* ParentParentCommons;
 
-    int FullStack;
     Branch* Options;
+    int FullStack;
+
+    int ParentID;
+    int ID;
+
+    int Evaluation;
 } Branch;
 
 Set Hold();
@@ -82,14 +84,14 @@ _Bool EqualPatterns(const _Bool* PatternA, const _Bool* PatternB, int SequenceLe
 
 
 void PrintLine(Position Position);
-IO HandleInput(_Bool StartingPlayer, _Bool Player, Set Pose, char Disregard, char Override);
+IO HandleInput(_Bool StartingPlayer, _Bool Player, Position Position, char Disregard, char Override);
 
 void InsertOccurrence(Game* Game, _Bool* Pattern, int SequenceLength);
-void AddSpot(Position *Position, _Bool ADD);
+void AddSpot(Position *Position, int ADD);
 void QuickAdd(Game* Game, Position Position, int SequenceLength);
 
 GameConclude GameEnding(Game Player1, Game Player2, Settings Player1Settings, Settings Player2Settings, _Bool AssumeStart);
-void Add(Branch** Class, int SupposedID, int ADD);
+void Add(Branch** Class, int SupposedID, int ADD, Set* Pose);
 
 #define RUN_BOT_OPTIONS 4
 
@@ -97,15 +99,15 @@ int BestImmediateOption(Branch** UC, int ID);
 int AverageOption(Branch** UC, int ID);
 
 void Out(Branch*** UC, int SupposedID, _Bool WeStart, int Depth);
-int Initiate(Branch** UC, int ID, int ADD, Set Pose, _Bool WeStart, int Depth);
+int Initiate(Branch** UC, int ID, int ADD, Set Pose, _Bool Create, _Bool WeStart, int Depth);
 
 void Pass(Branch** Operational, int* ON);
 void Sweep(Branch** Operational, int* ON);
 
 void ModifyList(Position Position, Game* Game, int SequenceLength, size_t EndAt);
-void UpdateGame(Set* Element, _Bool Play);
+void UpdateGame(Set* Element, int Play);
 GameConclude Simulate(Position Copy, const _Bool* Sequence, _Bool WeStart);
-char GameBot(Set Pose, _Bool ConsiderDraw, _Bool DrawExhausted);
+char GameBot(Position Position, _Bool ConsiderDraw, _Bool DrawExhausted);
 
 GameResult MetOccurrence(Game Game, int AppearanceRequirement);
 void OutputResult(GameConclude Result, Settings Player1Settings, Settings Player2Settings, _Bool StartingPlayer, _Bool Player);

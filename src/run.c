@@ -135,22 +135,32 @@ void PrintLine(const Position Position) {
     }
 }
 
-IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Set Pose, const char Disregard, const char Override) {
-    const size_t Check = 1;
-    char* Filter = malloc(Check);
+IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Position, const char Disregard, const char Override) {
+    // for the 2, it was vibe code fixed and same for %s -> %1s for all scanf
+    const size_t Check = 2;
+    char* Filter = malloc(Check * sizeof(char));
 
     char Input = Disregard;
 
+    _Bool DrawAvailable = 0;
+
+    const char PlayerNumeration = TwoWayConversion(StartingPlayer, '1', 1, '2', 0);
+    const char OtherPlayerNumeration = TwoWayConversion(StartingPlayer, '2', 1, '1', 0);
+
     if (AND(Input == 0, Override == 0)) {
         // print out to the player for input
-        const char PlayerNumeration = TwoWayConversion(StartingPlayer, '1', 1, '2', 0);
-        printf("Player %c; ", PlayerNumeration);
+
+        printf("Player ");
+        printf("%c", PlayerNumeration);
+        printf("; ");
 
         // reiterate the line to the player
-        PrintLine(Pose.Home);
+        PrintLine(Position);
+
+        DrawAvailable = 1;
 
         memset(Filter, 0, Check);
-        scanf("%s", Filter);
+        scanf("%1s", Filter);
 
         Input = Filter[0];
     }
@@ -162,39 +172,44 @@ IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Set Pose, c
     if (Input == 'x') Input = 'X';
     if (Input == 'o') Input = 'O';
     if (Input == 'e') Input = 'E';
-    if (Input == 'a') Input = 'A';
+
+    if (AND(Input == 'A', Invert(DrawAvailable))) Input = 'a';
 
     if (InvertedAND(Input != 'X', Input != 'O')) {
         Out.Play = (_Bool) TwoWayConversion(Input, 'X', 1, 'O', 0);
     }
 
-    const char OtherPlayerNumeration = TwoWayConversion(StartingPlayer, '2', 1, '1', 0);
-
     if (Input == 'E') {
-        printf("\nGame Conclusion: Player %c has Won to resignation!", OtherPlayerNumeration);
+        printf("\nGame Conclusion: Player ");
+        printf("%c", OtherPlayerNumeration);
+        printf(" has Won to resignation!");
 
         Out.Return = 1;
     }
 
     if (Input == 'A') {
-        if (Player == StartingPlayer) {
-            printf("What would you like to respond with regarding the possibility of declination? (X O A E) ");
+        const _Bool BotOn = 0; // integrate
+
+        if (InvertedInclusiveOR(Player == StartingPlayer, BotOn)) {
+            printf("What would you like to respond with regarding the possibility of declination? (X O E) ");
 
             memset(Filter, 0, Check);
-            scanf("%s", Filter);
+            scanf("%1s", Filter);
         } else {
-            Filter[0] = GameBot(Pose, 1, 1);
+            Filter[0] = GameBot(Position, 1, 1);
         }
 
         const char Disregards = Filter[0];
 
-        if (Player == StartingPlayer) {
-            Filter[0] = GameBot(Pose, 0, 0);
+        if (AND(Player == StartingPlayer, BotOn)) {
+            Filter[0] = GameBot(Position, 0, 0);
         } else {
-            printf("Player %c, would you like to accept a draw? (A D) ", OtherPlayerNumeration);
+            printf("Player ");
+            printf("%c", OtherPlayerNumeration);
+            printf(", would you like to accept a draw? (A D) ");
 
             memset(Filter, 0, Check);
-            scanf("%s", Filter);
+            scanf("%1s", Filter);
         }
 
         char AcceptanceInput = Filter[0];
@@ -203,26 +218,30 @@ IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Set Pose, c
         if (AcceptanceInput == 'd') AcceptanceInput = 'D';
 
         if (AcceptanceInput == 'A') {
-            printf("\nGame Conclusion: Player %c accepted a draw offer. The game ends in a tie!", OtherPlayerNumeration);
+            printf("\nGame Conclusion: Player ");
+            printf("%c", OtherPlayerNumeration);
+            printf(" accepted a draw offer. The game ends in a tie!");
 
             Out.Return = 1;
         }
 
         if (AcceptanceInput == 'D') {
-            printf("Player %c declined a draw offer!\n", OtherPlayerNumeration);
+            printf("Player ");
+            printf("%c", OtherPlayerNumeration);
+            printf(" declined a draw offer!\n");
 
             free(Filter);
 
-            Out = HandleInput(StartingPlayer, Player, Pose, Disregards, 0);
+            Out = HandleInput(StartingPlayer, Player, Position, Disregards, 0);
         }
     }
 
     if (AND(AND(AND(Input != 'X', Input != 'O'), Input != 'E'), Input != 'A')) {
-        printf("No option is case sensitive. Please pick either X or an O. You can resign the game with an E. Ask for a draw with an A.\n");
+        printf("None of the options are case sensitive. Please pick either X or an O. You can resign the game with an E. If you haven't already, asking for a draw is available.\n");
 
         free(Filter);
 
-        Out = HandleInput(StartingPlayer, Player, Pose, 0, 0);
+        Out = HandleInput(StartingPlayer, Player, Position, 0, 0);
     }
 
     Filter = NULL;
@@ -267,7 +286,7 @@ void InsertOccurrence(Game* Game, _Bool* Pattern, const int SequenceLength) {
     Game->Path.Count++;
 }
 
-void AddSpot(Position* Position, const _Bool ADD) {
+void AddSpot(Position* Position, const int ADD) {
     Pave(&Position->Path, (void**) &Position->Line, sizeof(_Bool));
 
     Position->Line[Position->Path.Count] = ADD;
@@ -282,19 +301,22 @@ void QuickAdd(Game* Game, const Position Position, const int SequenceLength) {
     InsertOccurrence(Game, Pattern, SequenceLength);
 }
 
-void Add(Branch** Class, const int SupposedID, const int ADD) {
-    if (Class[SupposedID]->FullStack == 1) {
-        Class[SupposedID]->Options = malloc(2 * sizeof(Branch));
+void Add(Branch** Class, const int SupposedID, const int ADD, Set* Pose) {
+    if ((*Class)[SupposedID].FullStack == 1) {
+        (*Class)[SupposedID].Options = malloc(RUN_BOT_OPTIONS * sizeof(Branch));
     }
 
-    Class[SupposedID]->Options[ADD] = (Branch) {
+    (*Class)[SupposedID].Options[ADD] = (Branch) {
         .ID = ADD,
-        .ParentID = Class[SupposedID]->ID,
+        .ParentID = (*Class)[SupposedID].ID,
         .ParentParentCommons = *Class,
+        .FullStack = 1,
         .Options = NULL
     };
 
-    Class[SupposedID]->FullStack++;
+    (*Class)[SupposedID].FullStack |= 1 << ADD;
+
+    UpdateGame(Pose, ADD);
 }
 
 int BestImmediateOption(Branch** UC, const int ID) {
@@ -304,7 +326,7 @@ int BestImmediateOption(Branch** UC, const int ID) {
     int BestMove = 0;
 
     while (Index < RUN_BOT_OPTIONS + 1) {
-        const int PotentialNewEvaluation = UC[ID]->Options[Index].Evaluation;
+        const int PotentialNewEvaluation = (*UC)[ID].Options[Index].Evaluation;
 
         if (PotentialNewEvaluation >= CurrentEvaluation) {
             CurrentEvaluation = PotentialNewEvaluation;
@@ -323,7 +345,7 @@ int AverageOption(Branch** UC, const int ID) {
     int CurrentEvaluation = 0;
 
     while (Index < RUN_BOT_OPTIONS + 1) {
-        CurrentEvaluation += UC[ID]->Options[Index].Evaluation;
+        CurrentEvaluation += (*UC)[ID].Options[Index].Evaluation;
 
         Index++;
     }
@@ -332,8 +354,8 @@ int AverageOption(Branch** UC, const int ID) {
 }
 
 void Out(Branch*** UC, const int SupposedID, const _Bool WeStart, const int Depth) {
-    if ((*UC)[SupposedID]->ID < RUN_BOT_OPTIONS + 1) {
-        *UC = &(*UC)[SupposedID]->ParentParentCommons; // reason we have triple pointer
+    if ((**UC)[SupposedID].ID < RUN_BOT_OPTIONS + 1) {
+        *UC = &(**UC)[SupposedID].ParentParentCommons; // reason we have triple pointer
         int Eval = 0;
         const _Bool StarterMove = (double) Depth / 2 == floor((double) Depth / 2);
         if (InvertedExclusiveOR(StarterMove, WeStart)) {
@@ -341,38 +363,37 @@ void Out(Branch*** UC, const int SupposedID, const _Bool WeStart, const int Dept
         } else {
             Eval = AverageOption(*UC, SupposedID);
         }
-        (*UC)[SupposedID]->Evaluation = Eval;
+        (**UC)[SupposedID].Evaluation = Eval;
         Out(UC, SupposedID, WeStart, Depth);
     }
 }
 
-int Initiate(Branch** UC, int ID, int ADD, const Set Pose, const _Bool WeStart, int Depth) {
-    /*
-    Add(UC, ID, ADD);
-    UC = &UC[ID]->Options;
+int Initiate(Branch** UC, int ID, int ADD, Set Pose, const _Bool Create, const _Bool WeStart, int Depth) {
+    if (Create) Pose = Hold();
+    Add(UC, ID, ADD, &Pose);
+    UC = &(*UC)[ID].Options;
+    ID = 1;
 
-    const GameConclude Occurence = GameEnding(Pose.Player1, Pose.Player2, Pose.Player1Settings, Pose.Player2Settings, WeStart);
-    if (Occurence.End) {
-        UC[ID]->Evaluation = InvertedExclusiveOR(Occurence.WeWon, WeStart);
+    const GameConclude Occurrence = GameEnding(Pose.Player1, Pose.Player2, Pose.Player1Settings, Pose.Player2Settings, WeStart);
+    if (Occurrence.End) {
+        (*UC)[ID].Evaluation = (int) InvertedExclusiveOR(Occurrence.WeWon, WeStart) << 16;
 
         Out(&UC, ID, WeStart, Depth);
 
-        if (UC[ID]->ID != 'B') {
-            UC = &UC[ID]->ParentParentCommons;
+        if ((*UC)[ID].ID != 0) {
+            *UC = (*UC)[ID].ParentParentCommons;
             Depth--;
             ADD++;
-            Initiate(UC, ID, ADD, Pose, WeStart, Depth);
+            Initiate(UC, ID, ADD, Pose, 0, WeStart, Depth);
         } else {
+            Release(Pose.Home.Line, &Pose.Player1, &Pose.Player2);
             return BestImmediateOption(UC, ID);
         }
     } else {
         ADD = 1;
         Depth++;
-        Initiate(UC, ID, ADD, Pose, WeStart, Depth);
+        Initiate(UC, ID, ADD, Pose, 0, WeStart, Depth);
     }
-    */
-
-    return 1;
 }
 
 void Pass(Branch** Operational, int* ON) {
@@ -429,7 +450,7 @@ void ModifyList(const Position Position, Game* Game, const int SequenceLength, c
     }
 }
 
-void UpdateGame(Set* Element, const _Bool Play) {
+void UpdateGame(Set* Element, const int Play) {
     AddSpot(&(*Element).Home, Play);
 
     QuickAdd(&(*Element).Player1, (*Element).Home, (*Element).Player1Settings.Length);
@@ -474,34 +495,9 @@ GameConclude Simulate(const Position Copy, const _Bool* Sequence, const _Bool We
     return Conclusion; // Template return
 }
 
-char GameBot(Set Pose, const _Bool ConsiderDraw, const _Bool DrawExhausted) {
-    if (Pose.Home.BotLevel == -3) {
-        return 'E';
-    }
-    if (Pose.Home.BotLevel == -2) {
-        if (DrawExhausted) {
-
-        }
-    }
-    if (Pose.Home.BotLevel == -1) {
-
-    }
-    if (Pose.Home.BotLevel == 0) {
-        if (!ConsiderDraw) return 'X';
-        return 'A';
-    }
-    if (Pose.Home.BotLevel == 1) {
-        if (!ConsiderDraw) {
-            if (Pose.Home.Line[Pose.Home.Path.Count - 2] != 0) return 'O';
-            return 'X';
-        }
-        return 'D';
-    }
-    if (Pose.Home.BotLevel == 2) {
-
-    }
-    if (Pose.Home.BotLevel == 3) {
-        const double h = (double) Pose.Home.Path.Count / 2;
+char GameBot(const Position Position, const _Bool ConsiderDraw, const _Bool DrawExhausted) {
+    if (Position.BotLevel == 3) {
+        const double h = (double) Position.Path.Count / 2;
         const _Bool WeStart = h == floor(h);
 
         Branch* Class = malloc(sizeof(Branch));
@@ -510,10 +506,11 @@ char GameBot(Set Pose, const _Bool ConsiderDraw, const _Bool DrawExhausted) {
             .ID = 0,
             .ParentID = 0,
             .ParentParentCommons = Class,
+            .FullStack = 1,
             .Options = NULL
         };
 
-        const int BestMove = Initiate(&Class, 0, 1, Pose, WeStart, 0);
+        const int BestMove = Initiate(&Class, 0, 1, (Set) { 0 }, 1, WeStart, 0);
 
         Branch* Operational = &Class[0];
         int ON = 0;
@@ -543,16 +540,14 @@ char GameBot(Set Pose, const _Bool ConsiderDraw, const _Bool DrawExhausted) {
             .Numeral = 4
         };
 
-        char Given = 'E';
-
-        Given = Convert((char) BestMove, Bindings, Bounded);
+        const char Given = Convert((char) BestMove, Bindings, Bounded);
         free(Bounded);
 
         return Given;
     }
 
     printf("Invalid Bot Parameters");
-    return 0;
+    return 'E';
 }
 
 GameResult MetOccurrence(const Game Game, const int AppearanceRequirement) {
