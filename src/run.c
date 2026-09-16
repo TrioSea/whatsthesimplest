@@ -44,7 +44,8 @@ void Release(_Bool* Line, Game* Player1, Game* Player2) {
     free(Line);
     Line = NULL;
 
-    int Beta;
+    // vibe corrected set to 0
+    int Beta = 0;
     int* PlayIndex = &Beta;
 
     while (*PlayIndex < Player1->Path.Count) {
@@ -135,19 +136,20 @@ void PrintLine(const Position Position) {
     }
 }
 
-IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Position, const char Disregard, const char Override) {
-    // for the 2, it was vibe code fixed and same for %s -> %1s for all scanf
-    const size_t Check = 2;
-    char* Filter = malloc(Check * sizeof(char));
+IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Position, const char Disregard, const char Override, _Bool DrawExhausted) {
+    // for the 2, it was vibe corrected and same for %s -> %1s for all scanf
+    const size_t Check = 2 * sizeof(char);
+    char* Filter = malloc(Check);
 
     char Input = Disregard;
 
-    _Bool DrawAvailable = 0;
-
     const char PlayerNumeration = TwoWayConversion(StartingPlayer, '1', 1, '2', 0);
-    const char OtherPlayerNumeration = TwoWayConversion(StartingPlayer, '2', 1, '1', 0);
+    const char OtherPlayerNumeration = TwoWayConversion(Invert(StartingPlayer), '1', 1, '2', 0);
 
-    if (AND(Input == 0, Override == 0)) {
+    if (Override != 0) {
+        if (Input != 0) DrawExhausted = 0;
+        Input = Override;
+    } else if (Input == 0) {
         // print out to the player for input
 
         printf("Player ");
@@ -157,23 +159,21 @@ IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Po
         // reiterate the line to the player
         PrintLine(Position);
 
-        DrawAvailable = 1;
-
         memset(Filter, 0, Check);
         scanf("%1s", Filter);
 
         Input = Filter[0];
     }
 
-    if (Override != 0) Input = Override;
-
     IO Out = { 0 };
     
     if (Input == 'x') Input = 'X';
     if (Input == 'o') Input = 'O';
     if (Input == 'e') Input = 'E';
+    if (Input == 'a') Input = 'A';
 
-    if (AND(Input == 'A', Invert(DrawAvailable))) Input = 'a';
+    // vibe recorrected
+    if (AND(Input == 'A', DrawExhausted)) Input = 0;
 
     if (InvertedAND(Input != 'X', Input != 'O')) {
         Out.Play = (_Bool) TwoWayConversion(Input, 'X', 1, 'O', 0);
@@ -232,16 +232,18 @@ IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Po
 
             free(Filter);
 
-            Out = HandleInput(StartingPlayer, Player, Position, Disregards, 0);
+            DrawExhausted = 1;
+
+            Out = HandleInput(StartingPlayer, Player, Position, Disregards, 0, DrawExhausted);
         }
     }
 
-    if (AND(AND(AND(Input != 'X', Input != 'O'), Input != 'E'), Input != 'A')) {
+    if (AND(AND(AND(Input != 'X', Input != 'O'), Input != 'E'), InclusiveOR(Input != 'A', DrawExhausted))) {
         printf("None of the options are case sensitive. Please pick either X or an O. You can resign the game with an E. If you haven't already, asking for a draw is available.\n");
 
         free(Filter);
 
-        Out = HandleInput(StartingPlayer, Player, Position, 0, 0);
+        Out = HandleInput(StartingPlayer, Player, Position, 0, 0, DrawExhausted);
     }
 
     Filter = NULL;
@@ -303,7 +305,8 @@ void QuickAdd(Game* Game, const Position Position, const int SequenceLength) {
 
 void Add(Branch** Class, const int SupposedID, const int ADD, Set* Pose) {
     if ((*Class)[SupposedID].FullStack == 1) {
-        (*Class)[SupposedID].Options = malloc(RUN_BOT_OPTIONS * sizeof(Branch));
+        // +1 is vibe corrected
+        (*Class)[SupposedID].Options = malloc((RUN_BOT_OPTIONS + 1) * sizeof(Branch));
     }
 
     (*Class)[SupposedID].Options[ADD] = (Branch) {
