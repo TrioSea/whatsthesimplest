@@ -11,8 +11,12 @@ typedef struct {
     char Numeral;
 } Bind;
 
+typedef struct {
+    int Bindings;
+    Bind* Bounded;
+} Table;
+
 Product ConvertParent(char Subject, char ConnectLetter, char ConnectNumber);
-char Convert(char Subject, int Bindings, const Bind* Bounded);
-char TwoWayConversion(char Subject, char CharacterBind1, char NumeralBind1, char CharacterBind2, char NumeralBind2);
+char Convert(char Subject, Table Table);
 
 #endif // WITSPG_CONVERSIONS_H

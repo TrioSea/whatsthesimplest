@@ -21,7 +21,7 @@ typedef struct {
 
 typedef struct {
     _Bool Return;
-    _Bool Play;
+    char Play;
 } IO;
 
 typedef struct {
@@ -31,7 +31,7 @@ typedef struct {
 
 typedef struct {
     SizeTracker Path;
-    _Bool* Line;
+    char* Line;
 
     int BotLevel;
 } Position;
@@ -51,6 +51,10 @@ typedef struct {
 
     Game Player1;
     Game Player2;
+
+    Table Table2;
+    Table Table4;
+
     Settings Player1Settings;
     Settings Player2Settings;
 
@@ -59,13 +63,18 @@ typedef struct {
     _Bool Full;
 } Set;
 
+typedef struct {
+    Table Table2;
+    Table Table4;
+} MainTables;
+
 typedef struct Branch Branch;
 
 typedef struct Branch {
     Branch* ParentParentCommons;
 
     Branch* Options;
-    int FullStack;
+    long long int FullStack;
 
     int ParentID;
     int ID;
@@ -73,25 +82,29 @@ typedef struct Branch {
     int Evaluation;
 } Branch;
 
+
+
 Set Hold();
-void Release(_Bool* Line, Game* Player1, Game* Player2);
+MainTables Tables();
+void Release(char* Line, Game* Player1, Game* Player2);
+void Debunk(MainTables Tables);
 
 void SwapState(_Bool* State);
 
-_Bool* ReadPattern(const _Bool* Line, size_t PointInLine, int SequenceLength);
-void PrintPattern(const _Bool* Pattern, int SequenceLength);
+GameResult ReadPattern(Position Position, size_t PointInLine, int SequenceLength, Table Table4);
+void PrintPattern(const _Bool* Pattern, int SequenceLength, Table Table4);
 _Bool EqualPatterns(const _Bool* PatternA, const _Bool* PatternB, int SequenceLength);
 
 
-void PrintLine(Position Position);
-IO HandleInput(_Bool StartingPlayer, _Bool Player, Position Position, char Disregard, char Override, _Bool DrawExhausted);
+void PrintLine(Position Position, Table Table4);
+IO HandleInput(Set Stance, _Bool Player, char Disregard, char Override, _Bool DrawExhausted, Table Table2, Table Table4);
 
 void InsertOccurrence(Game* Game, _Bool* Pattern, int SequenceLength);
-void AddSpot(Position *Position, int ADD);
-void QuickAdd(Game* Game, Position Position, int SequenceLength);
+void AddSpot(Position *Position, char ADD);
+void QuickAdd(Game* Game, Position Position, int SequenceLength, Table Table4);
 
 GameConclude GameEnding(Game Player1, Game Player2, Settings Player1Settings, Settings Player2Settings, _Bool AssumeStart);
-void Add(Branch** Class, int SupposedID, int ADD, Set* Pose);
+void Add(Branch** Class, int SupposedID, char ADD, Set* Pose, Table Table4);
 
 #define RUN_BOT_OPTIONS 4
 
@@ -99,17 +112,17 @@ int BestImmediateOption(Branch** UC, int ID);
 int AverageOption(Branch** UC, int ID);
 
 void Out(Branch*** UC, int SupposedID, _Bool WeStart, int Depth);
-int Initiate(Branch** UC, int ID, int ADD, Set Pose, _Bool Create, _Bool WeStart, int Depth);
+int Initiate(Branch** UC, int ID, char ADD, Set Pose, _Bool Create, _Bool WeStart, int Depth, Table Table4);
 
 void Pass(Branch** Operational, int* ON);
 void Sweep(Branch** Operational, int* ON);
 
-void ModifyList(Position Position, Game* Game, int SequenceLength, size_t EndAt);
-void UpdateGame(Set* Element, int Play);
-GameConclude Simulate(Position Copy, const _Bool* Sequence, _Bool WeStart);
-char GameBot(Position Position, _Bool ConsiderDraw, _Bool DrawExhausted);
+void ModifyList(Position Position, Game* Game, int SequenceLength, size_t EndAt, Table Table4);
+void UpdateGame(Set* Element, char Play, Table Table4);
+GameConclude Simulate(Position Copy, const _Bool* Sequence, _Bool WeStart, Table Table4);
+char GameBot(Set Stance, _Bool ConsiderDraw, _Bool DrawExhausted, Table Table4);
 
 GameResult MetOccurrence(Game Game, int AppearanceRequirement);
-void OutputResult(GameConclude Result, Settings Player1Settings, Settings Player2Settings, _Bool StartingPlayer, _Bool Player);
+void OutputResult(GameConclude Result, Settings Player1Settings, Settings Player2Settings, _Bool StartingPlayer, _Bool Player, Table Table2, Table Table4);
 
 #endif // WITSPG_MAIN_H

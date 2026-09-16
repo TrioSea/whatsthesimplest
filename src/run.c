@@ -3,11 +3,11 @@
 Set Hold() {
     Set Element = (Set) {
         .Player1 = (Game) {
-            .List = calloc(0, sizeof(Occurrence)),
+            .List = (Occurrence*) calloc(0, sizeof(Occurrence)),
             .Path = (SizeTracker) { 0 }
         },
         .Player2 = (Game) {
-            .List = calloc(0, sizeof(Occurrence)),
+            .List = (Occurrence*) calloc(0, sizeof(Occurrence)),
             .Path = (SizeTracker) { 0 }
         },
         .Player1Settings = (Settings) {
@@ -18,9 +18,9 @@ Set Hold() {
             .Repeats = 4,
             .Length = 3
         },
-        .Full = 1,
+        .Full = (_Bool) 1,
         .Home = (Position) {
-            .Line = calloc(0, sizeof(_Bool)),
+            .Line = (char*) calloc(0, sizeof(char)),
             .Path = (SizeTracker) { 0 },
             .BotLevel = 0
         },
@@ -40,7 +40,56 @@ Set Hold() {
     return Element;
 }
 
-void Release(_Bool* Line, Game* Player1, Game* Player2) {
+MainTables Tables() {
+    MainTables Element = (MainTables) {
+        .Table2 = (Table) {
+            .Bindings = 2,
+            .Bounded = calloc(2, sizeof(Bind)) // repeat bindings
+        },
+        .Table4 = (Table) {
+            .Bindings = 4,
+            .Bounded = calloc(4, sizeof(Bind))
+        }
+    };
+
+    Element.Table2.Bounded[0] = (Bind) {
+        .Character = '1',
+        .Numeral = 1
+    };
+    Element.Table2.Bounded[1] = (Bind) {
+        .Character = '2',
+        .Numeral = 0
+    };
+
+    Element.Table4.Bounded[0] = (Bind) {
+        .Character = 'X',
+        .Numeral = 1
+    };
+    Element.Table4.Bounded[1] = (Bind) {
+        .Character = 'O',
+        .Numeral = 2
+    };
+    Element.Table4.Bounded[2] = (Bind) {
+        .Character = 'A',
+        .Numeral = 3
+    };
+    Element.Table4.Bounded[3] = (Bind) {
+        .Character = 'E',
+        .Numeral = 4
+    };
+
+    FallBack Error;
+
+    Error = CheckNewlyAllocated(Element.Table2.Bounded);
+    if (Error.ReturnCode == 1) return (MainTables) { 0 };
+
+    Error = CheckNewlyAllocated(Element.Table4.Bounded);
+    if (Error.ReturnCode == 1) return (MainTables) { 0 };
+
+    return Element;
+}
+
+void Release(char* Line, Game* Player1, Game* Player2) {
     free(Line);
     Line = NULL;
 
@@ -77,6 +126,14 @@ void Release(_Bool* Line, Game* Player1, Game* Player2) {
     Player2->List = NULL;
 }
 
+void Debunk(MainTables Tables) {
+    free(Tables.Table2.Bounded);
+    Tables.Table2.Bounded = NULL;
+
+    free(Tables.Table4.Bounded);
+    Tables.Table4.Bounded = NULL;
+}
+
 void SwapState(_Bool* State) {
     if (*State == 0) {
         *State = 1;
@@ -85,25 +142,48 @@ void SwapState(_Bool* State) {
     *State = 0;
 }
 
-_Bool* ReadPattern(const _Bool* Line, const size_t PointInLine, const int SequenceLength) {
+GameResult ReadPattern(const Position Position, size_t PointInLine, const int SequenceLength, const Table Table4) {
     _Bool* Pattern = calloc(SequenceLength, sizeof(_Bool)); // Clear up a pattern
     const FallBack Error = CheckNewlyAllocated(Pattern);
-    if (Error.ReturnCode == 1) return Pattern;
+
+    const GameResult DefaultReturn = (GameResult) {
+        .Pattern = NULL,
+        .End = 1
+    };
+
+    if (Error.ReturnCode == 1) return DefaultReturn;
 
     int SequenceIndex = 0; // Incremental Looping Index
 
     while (SequenceIndex < SequenceLength) {
-        Pattern[SequenceIndex] = Line[PointInLine + SequenceIndex]; // Translate pattern from the line directly
-        SequenceIndex++;
+        if (PointInLine + SequenceIndex < Position.Path.Count) {
+            const char Written = Position.Line[PointInLine + SequenceIndex];
+            const _Bool Invalid = InvertedAND(InvertedAND(Written != 'E', Written != 'A'), Written != 'D');
+            if (Invalid) {
+                PointInLine++;
+                continue;
+            }
+
+            Pattern[SequenceIndex] = (_Bool) Convert(Written, Table4); // Translate pattern from the line directly
+            SequenceIndex++;
+        } else {
+            free(Pattern);
+            Pattern = NULL;
+
+            return DefaultReturn;
+        }
     }
 
-    return Pattern;
+    return (GameResult) {
+        .Pattern = Pattern,
+        .End = 0
+    };
 }
 
-void PrintPattern(const _Bool* Pattern, const int SequenceLength) {
+void PrintPattern(const _Bool* Pattern, const int SequenceLength, const Table Table4) {
     int PatternIndex = 0;
     while (PatternIndex < SequenceLength) {
-        printf("%c", TwoWayConversion(Pattern[PatternIndex], 'X', 1, 'O', 0));
+        printf("%c", Convert(Pattern[PatternIndex], Table4));
         PatternIndex++;
     }
 }
@@ -126,25 +206,25 @@ _Bool EqualPatterns(const _Bool* PatternA, const _Bool* PatternB, const int Sequ
 
 
 
-void PrintLine(const Position Position) {
+void PrintLine(const Position Position, const Table Table4) {
     int ThroughLine = 0;
     while (ThroughLine < Position.Path.Count) {
-        const char PreviousInput = TwoWayConversion(Position.Line[ThroughLine], 'X', 1, 'O', 0);
+        const char PreviousInput = Convert(Position.Line[ThroughLine], Table4);
         printf("%c", PreviousInput);
 
         ThroughLine++;
     }
 }
 
-IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Position, const char Disregard, const char Override, _Bool DrawExhausted) {
+IO HandleInput(const Set Stance, const _Bool Player, const char Disregard, const char Override, _Bool DrawExhausted, const Table Table2, const Table Table4) {
     // for the 2, it was vibe corrected and same for %s -> %1s for all scanf
     const size_t Check = 2 * sizeof(char);
     char* Filter = malloc(Check);
 
     char Input = Disregard;
 
-    const char PlayerNumeration = TwoWayConversion(StartingPlayer, '1', 1, '2', 0);
-    const char OtherPlayerNumeration = TwoWayConversion(Invert(StartingPlayer), '1', 1, '2', 0);
+    const char PlayerNumeration = Convert(Stance.Full, Table2);
+    const char OtherPlayerNumeration = Convert(Invert(Stance.Full), Table2);
 
     if (Override != 0) {
         if (Input != 0) DrawExhausted = 0;
@@ -157,7 +237,7 @@ IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Po
         printf("; ");
 
         // reiterate the line to the player
-        PrintLine(Position);
+        PrintLine(Stance.Home, Table4);
 
         memset(Filter, 0, Check);
         scanf("%1s", Filter);
@@ -176,7 +256,7 @@ IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Po
     if (AND(Input == 'A', DrawExhausted)) Input = 0;
 
     if (InvertedAND(Input != 'X', Input != 'O')) {
-        Out.Play = (_Bool) TwoWayConversion(Input, 'X', 1, 'O', 0);
+        Out.Play = Input; // Simplified to _Bool in UpdateGame()
     }
 
     if (Input == 'E') {
@@ -190,19 +270,19 @@ IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Po
     if (Input == 'A') {
         const _Bool BotOn = 0; // integrate
 
-        if (InvertedInclusiveOR(Player == StartingPlayer, BotOn)) {
+        if (InvertedInclusiveOR(Player == Stance.Full, BotOn)) {
             printf("What would you like to respond with regarding the possibility of declination? (X O E) ");
 
             memset(Filter, 0, Check);
             scanf("%1s", Filter);
         } else {
-            Filter[0] = GameBot(Position, 1, 1);
+            Filter[0] = GameBot(Stance, 1, 1, Table4);
         }
 
         const char Disregards = Filter[0];
 
-        if (AND(Player == StartingPlayer, BotOn)) {
-            Filter[0] = GameBot(Position, 0, 0);
+        if (AND(Player == Stance.Full, BotOn)) {
+            Filter[0] = GameBot(Stance, 0, 0, Table4);
         } else {
             printf("Player ");
             printf("%c", OtherPlayerNumeration);
@@ -234,7 +314,7 @@ IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Po
 
             DrawExhausted = 1;
 
-            Out = HandleInput(StartingPlayer, Player, Position, Disregards, 0, DrawExhausted);
+            Out = HandleInput(Stance, Player, Disregards, 0, DrawExhausted, Table2, Table4);
         }
     }
 
@@ -243,7 +323,7 @@ IO HandleInput(const _Bool StartingPlayer, const _Bool Player, const Position Po
 
         free(Filter);
 
-        Out = HandleInput(StartingPlayer, Player, Position, 0, 0, DrawExhausted);
+        Out = HandleInput(Stance, Player, 0, 0, DrawExhausted, Table2, Table4);
     }
 
     Filter = NULL;
@@ -288,38 +368,38 @@ void InsertOccurrence(Game* Game, _Bool* Pattern, const int SequenceLength) {
     Game->Path.Count++;
 }
 
-void AddSpot(Position* Position, const int ADD) {
+void AddSpot(Position* Position, const char ADD) {
     Pave(&Position->Path, (void**) &Position->Line, sizeof(_Bool));
 
     Position->Line[Position->Path.Count] = ADD;
     Position->Path.Count++;
 }
 
-void QuickAdd(Game* Game, const Position Position, const int SequenceLength) {
+void QuickAdd(Game* Game, const Position Position, const int SequenceLength, const Table Table4) {
     // Adds Last Occurrence to a list
     if (Position.Path.Count < SequenceLength) return;
 
-    void* Pattern = ReadPattern(Position.Line, Position.Path.Count - SequenceLength, SequenceLength);
-    InsertOccurrence(Game, Pattern, SequenceLength);
+    const GameResult Result = ReadPattern(Position, Position.Path.Count - SequenceLength, SequenceLength, Table4);
+    if (Invert(Result.End)) InsertOccurrence(Game, Result.Pattern, SequenceLength);
 }
 
-void Add(Branch** Class, const int SupposedID, const int ADD, Set* Pose) {
+void Add(Branch** Class, const int SupposedID, const char ADD, Set* Pose, const Table Table4) {
     if ((*Class)[SupposedID].FullStack == 1) {
         // +1 is vibe corrected
         (*Class)[SupposedID].Options = malloc((RUN_BOT_OPTIONS + 1) * sizeof(Branch));
     }
 
-    (*Class)[SupposedID].Options[ADD] = (Branch) {
-        .ID = ADD,
+    (*Class)[SupposedID].Options[Convert(ADD, Table4)] = (Branch) {
+        .ID = Convert(ADD, Table4),
         .ParentID = (*Class)[SupposedID].ID,
         .ParentParentCommons = *Class,
         .FullStack = 1,
         .Options = NULL
     };
 
-    (*Class)[SupposedID].FullStack |= 1 << ADD;
+    (*Class)[SupposedID].FullStack |= 1 << Convert(ADD, Table4);
 
-    UpdateGame(Pose, ADD);
+    UpdateGame(Pose, ADD, Table4);
 }
 
 int BestImmediateOption(Branch** UC, const int ID) {
@@ -371,31 +451,36 @@ void Out(Branch*** UC, const int SupposedID, const _Bool WeStart, const int Dept
     }
 }
 
-int Initiate(Branch** UC, int ID, int ADD, Set Pose, const _Bool Create, const _Bool WeStart, int Depth) {
+int Initiate(Branch** UC, int ID, char ADD, Set Pose, const _Bool Create, const _Bool WeStart, int Depth, const Table Table4) {
     if (Create) Pose = Hold();
-    Add(UC, ID, ADD, &Pose);
+
+    Add(UC, ID, ADD, &Pose, Table4);
     UC = &(*UC)[ID].Options;
     ID = 1;
 
     const GameConclude Occurrence = GameEnding(Pose.Player1, Pose.Player2, Pose.Player1Settings, Pose.Player2Settings, WeStart);
     if (Occurrence.End) {
-        (*UC)[ID].Evaluation = (int) InvertedExclusiveOR(Occurrence.WeWon, WeStart) << 16;
+        (*UC)[ID].Evaluation = (int) InvertedExclusiveOR(Occurrence.WeWon, WeStart) << 15;
 
         Out(&UC, ID, WeStart, Depth);
 
         if ((*UC)[ID].ID != 0) {
             *UC = (*UC)[ID].ParentParentCommons;
             Depth--;
-            ADD++;
-            Initiate(UC, ID, ADD, Pose, 0, WeStart, Depth);
+
+            const int ADDNumberForm = Convert(ADD, Table4) + 1;
+            ADD = Convert((char) ADDNumberForm, Table4);
+
+            Initiate(UC, ID, ADD, Pose, 0, WeStart, Depth, Table4);
         } else {
             Release(Pose.Home.Line, &Pose.Player1, &Pose.Player2);
             return BestImmediateOption(UC, ID);
         }
     } else {
-        ADD = 1;
+        ADD = Convert(1, Table4);
         Depth++;
-        Initiate(UC, ID, ADD, Pose, 0, WeStart, Depth);
+
+        Initiate(UC, ID, ADD, Pose, 0, WeStart, Depth, Table4);
     }
 }
 
@@ -436,7 +521,7 @@ void Sweep(Branch** Operational, int* ON) {
     }
 }
 
-void ModifyList(const Position Position, Game* Game, const int SequenceLength, const size_t EndAt) {
+void ModifyList(const Position Position, Game* Game, const int SequenceLength, const size_t EndAt, const Table Table4) {
     if (InclusiveOR(EndAt < Position.Path.Count, EndAt < SequenceLength)) return;
 
     // Set the looping value as a back to front to decrement
@@ -444,23 +529,23 @@ void ModifyList(const Position Position, Game* Game, const int SequenceLength, c
 
     while (Back >= 0) {
         // Use the function to simplify the obtainance of the pattern
-        _Bool* Pattern = ReadPattern(Position.Line, Back + 1, SequenceLength);
+        const GameResult Appear = ReadPattern(Position, Back + 1, SequenceLength, Table4);
 
-        // Use the pattern to only insert it
-        InsertOccurrence(Game, Pattern, SequenceLength);
+        // Use the pattern to only insert itModifyList
+        if (Invert(Appear.End)) InsertOccurrence(Game, Appear.Pattern, SequenceLength);
 
         Back--;
     }
 }
 
-void UpdateGame(Set* Element, const int Play) {
+void UpdateGame(Set* Element, const char Play, const Table Table4) {
     AddSpot(&(*Element).Home, Play);
 
-    QuickAdd(&(*Element).Player1, (*Element).Home, (*Element).Player1Settings.Length);
-    QuickAdd(&(*Element).Player2, (*Element).Home, (*Element).Player2Settings.Length);
+    QuickAdd(&(*Element).Player1, (*Element).Home, (*Element).Player1Settings.Length, Table4);
+    QuickAdd(&(*Element).Player2, (*Element).Home, (*Element).Player2Settings.Length, Table4);
 }
 
-GameConclude Simulate(const Position Copy, const _Bool* Sequence, const _Bool WeStart) {
+GameConclude Simulate(const Position Copy, const _Bool* Sequence, const _Bool WeStart, const Table Table4) {
     const int SequenceLength = (int) sizeof(*Sequence) / sizeof(_Bool);
 
     // Get the simulation
@@ -476,8 +561,8 @@ GameConclude Simulate(const Position Copy, const _Bool* Sequence, const _Bool We
     memcpy(Element.Home.Line, Copy.Line, Element.Home.Path.Count * sizeof(_Bool));
 
     // *Sub-Comment*: Making the game a bit harder on compute by passing less through "Simulate" to use.
-    ModifyList(Element.Home, &Element.Player1, Element.Player1Settings.Length, Element.Home.Path.Count);
-    ModifyList(Element.Home, &Element.Player2, Element.Player2Settings.Length, Element.Home.Path.Count);
+    ModifyList(Element.Home, &Element.Player1, Element.Player1Settings.Length, Element.Home.Path.Count, Table4);
+    ModifyList(Element.Home, &Element.Player2, Element.Player2Settings.Length, Element.Home.Path.Count, Table4);
 
     // Asserts sequence
     int PatternIndex = 0;
@@ -498,9 +583,9 @@ GameConclude Simulate(const Position Copy, const _Bool* Sequence, const _Bool We
     return Conclusion; // Template return
 }
 
-char GameBot(const Position Position, const _Bool ConsiderDraw, const _Bool DrawExhausted) {
-    if (Position.BotLevel == 3) {
-        const double h = (double) Position.Path.Count / 2;
+char GameBot(const Set Stance, const _Bool ConsiderDraw, const _Bool DrawExhausted, const Table Table4) {
+    if (Stance.Home.BotLevel == 3) {
+        const double h = (double) Stance.Home.Path.Count / 2;
         const _Bool WeStart = h == floor(h);
 
         Branch* Class = malloc(sizeof(Branch));
@@ -513,40 +598,14 @@ char GameBot(const Position Position, const _Bool ConsiderDraw, const _Bool Draw
             .Options = NULL
         };
 
-        const int BestMove = Initiate(&Class, 0, 1, (Set) { 0 }, 1, WeStart, 0);
+        const int BestMove = Initiate(&Class, 0, Convert(1, Table4), Stance, 1, WeStart, 0, Table4);
 
         Branch* Operational = &Class[0];
         int ON = 0;
 
         Pass(&Operational, &ON);
 
-        const int Bindings = 4;
-        Bind* Bounded = calloc(Bindings, sizeof(Bind));
-
-        Bounded[0] = (Bind) {
-            .Character = 'X',
-            .Numeral = 1
-        };
-
-        Bounded[1] = (Bind) {
-            .Character = 'O',
-            .Numeral = 2
-        };
-
-        Bounded[2] = (Bind) {
-            .Character = 'A',
-            .Numeral = 3
-        };
-
-        Bounded[3] = (Bind) {
-            .Character = 'E',
-            .Numeral = 4
-        };
-
-        const char Given = Convert((char) BestMove, Bindings, Bounded);
-        free(Bounded);
-
-        return Given;
+        return Convert((char) BestMove, Table4);
     }
 
     printf("Invalid Bot Parameters");
@@ -588,9 +647,9 @@ GameConclude GameEnding(const Game Player1, const Game Player2, const Settings P
     return Conclusion;
 }
 
-void OutputResult(const GameConclude Result, const Settings Player1Settings, const Settings Player2Settings, const _Bool StartingPlayer, const _Bool Player) {
-    const char PlayerNumeration = TwoWayConversion(Player, '1', 1, '2', 0);
-    const char PlayerFinisherNumeration = TwoWayConversion(StartingPlayer, '1', 1, '2', 0);
+void OutputResult(const GameConclude Result, const Settings Player1Settings, const Settings Player2Settings, const _Bool StartingPlayer, const _Bool Player, const Table Table2, const Table Table4) {
+    const char PlayerNumeration = Convert(Player, Table2);
+    const char PlayerFinisherNumeration = Convert(StartingPlayer, Table2);
 
     printf("\nGame Conclusion: ");
 
@@ -603,10 +662,10 @@ void OutputResult(const GameConclude Result, const Settings Player1Settings, con
         printf(")");
 
         printf("\n Player 1: ");
-        PrintPattern(Result.Player1Pattern, Player1Settings.Length);
+        PrintPattern(Result.Player1Pattern, Player1Settings.Length, Table4);
 
         printf("\n Player 2: ");
-        PrintPattern(Result.Player2Pattern, Player2Settings.Length);
+        PrintPattern(Result.Player2Pattern, Player2Settings.Length, Table4);
     } else {
         printf("We (Player ");
         printf("%c", PlayerNumeration);
@@ -619,8 +678,8 @@ void OutputResult(const GameConclude Result, const Settings Player1Settings, con
 
         const _Bool Outcome = ExclusiveOR(Result.WeWon, Player);
 
-        if (Outcome == 1) PrintPattern(Result.Player2Pattern, Player2Settings.Length);
-        if (Outcome == 0) PrintPattern(Result.Player1Pattern, Player1Settings.Length);
+        if (Outcome == 1) PrintPattern(Result.Player2Pattern, Player2Settings.Length, Table4);
+        if (Outcome == 0) PrintPattern(Result.Player1Pattern, Player1Settings.Length, Table4);
 
         printf("!\nThe game was finished by Player ");
         printf("%c", PlayerFinisherNumeration);
