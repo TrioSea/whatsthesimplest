@@ -143,6 +143,7 @@ void SwapState(_Bool* State) {
 }
 
 GameResult ReadPattern(const Position Position, size_t PointInLine, const int SequenceLength, const Table Table4) {
+    // sig segv here, wont end the line, check back on the end function gtg to bed bye
     _Bool* Pattern = calloc(SequenceLength, sizeof(_Bool)); // Clear up a pattern
     const FallBack Error = CheckNewlyAllocated(Pattern);
 
